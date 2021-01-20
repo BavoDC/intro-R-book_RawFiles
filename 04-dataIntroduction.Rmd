@@ -1,0 +1,619 @@
+# Getting started with data in R {#started-with-data}
+
+## Importing data
+
+Importing data into R to start your analyses-it should be the easiest step. Unfortunately, this is almost never the case. Data come in all sorts of formats, ranging from CSV and text files and statistical software files to databases and HTML data. Knowing which approach to use is key to getting started with the actual analysis. (Quote from DataCamp's 'Importing Data in R (Part 1)' course)
+
+The default location where R will look or store files, is your working directory [@introR]. When opening an RStudio project, the working directory is automatically set to the folder where the .Rproj file is located. 
+
+```{r, eval=FALSE}
+# what is the current working directory?
+getwd()
+# which files are currently stored in my working directory?
+dir()
+```
+
+To change the working directory, we use the `setwd()` function.
+```{r, eval = FALSE}
+setwd("C:/Users/JohnDoe/Documents/RandomProject")
+```
+
+If we have stored the data in a subfolder of our current working directory, we can specify the path as follows.
+```{r}
+# where are my data files?
+pathData <- file.path('data')
+```
+
+Creating a subfolder for your data files a good way to keep your files and project organized. When learning R, however, it may be easier to use the function `file.choose()` to use the point and click approach to select your file.
+
+
+### Importing a .csv file with `read.csv()` 
+
+The `utils` package, which is automatically loaded in your R session on startup, can import CSV files with the `read.csv()` function. You will now load a data set on swimming pools in Brisbane, Australia (source: [data.gov.au](data.gov.au)). The file contains the column names in the first row and uses commas to separate values within rows (CSV stands for comma-separated values). (Quote and example from DataCamp's 'Importing Data in R (Part 1)' course)
+```{r}
+path.pools <- file.path(pathData, "swimming_pools.csv")
+pools <- read.csv(path.pools)
+str(pools)
+```
+With `stringsAsFactors`, you can tell R whether it should convert strings in the flat file to factors. 
+```{r}
+pools <- read.csv(path.pools, stringsAsFactors = FALSE)
+```
+
+We can then use the function `str()` to get a first compact view of the imported database. This function can be used on any object in R and will help you to understand its structure.
+
+```{r}
+str(pools)
+```
+#### Importing a .csv file with semicolons as delimiter
+
+Instead of a comma, it is also possible that the different rows are separated by semicolons. It is therefore important to know what kind of delimiter is used in your raw data file. This is why the `str()` function is so useful, since it will directly show you if the database was imported correctly or not.
+
+```{r}
+policy.path <- file.path(pathData, "policy.csv")
+policy <- read.csv(policy.path)
+str(policy)
+dim(policy)
+```
+Here, we clearly see that the database was not imported correctly. This is because the policy database uses a semicolon as a delimiter. By default, the delimiter in `read.csv()` is a comma. To correctly import the database, we can either use 
+
+```{r, eval = FALSE}
+read.csv2(policy.path)
+```
+
+which has the semicolon as default delimiter or we can change the delimiter by changing the argument `sep` in the `read.csv()` function.
+
+```{r, eval = FALSE}
+read.csv(policy.path, sep = ";")
+```
+
+We can even use the function `read.table()` to import the database, by specifying `header = TRUE` and `sep = ";"`.
+
+```{r}
+policy <- read.table(policy.path, header = TRUE, sep = ";")
+```
+
+Once we have imported the database, we can further explore it using the following functions.
+```{r}
+head(policy)
+tail(policy)
+names(policy)
+dim(policy)
+```
+
+For the purpose of this chapter, we will write a custom function to explore the data.frame. For now, it is not necessary to understand it, as we will discuss functions in detail in Chapter \@ref(functions).
+```{r}
+ExploreDf <- function(x) {
+        if(!is.data.frame(x))
+                stop("Only objects of type data.frame are allowed.")
+        StrAdj  <- function(x) capture.output(str(x))
+        fntions <- setNames(list(names, dim, head, tail, StrAdj), c("names", "dim", "head", "tail", "str"))
+        Res <- sapply(fntions, function(f) f(x), simplify = F)
+        for(i in seq_along(Res)) {
+                cat("\n\n", names(Res)[i], ":\n")
+                if(i %in% 3:4)
+                        print.data.frame(Res[[i]])
+                else if(i != 5)
+                        print(Res[[i]])
+                else
+                        cat(paste0(Res[[5]], collapse = "\n"))
+        }
+}
+```
+
+
+
+### Importing a .txt file: the Danish fire insurance data
+
+`read.table()` is the most basic function to import data sets. The `read.table()` function is in fact the function that is used by the `read.csv()` and `read.csv2()` functions, but the arguments of the two latter functions are different. You can easily see this by looking at the functions themselves.
+
+```{r}
+read.csv
+read.csv2
+```
+An important difference with the `read.csv()` function, is that the `header` argument defaults to FALSE and the sep argument is "" by default in `read.table()`. (Quote from DataCamp's 'Importing Data in R (Part 1)' course) 
+
+`header` is an argument that requires a logical argument (i.e. `TRUE` or `FALSE`) and is used to indicate whether the file contains the variable names as its first line. So, in almost all cases, you will have to set this to `TRUE`.
+```{r}
+path.fire <- file.path(pathData, "danish.txt")
+danish <- read.table(path.fire, header = TRUE)
+head(danish, n = 10) # use the argument 'n' to display less/more records
+ExploreDf(danish)
+```
+
+Compared to the raw .txt file, something is a bit different in the imported dataset. Can you see what's different? That's right, the second column name has dots instead of hyphens.
+
+```{r}
+# Function to open files using R
+opendir <- function(dir = getwd()){
+  if (.Platform['OS.type'] == "windows"){
+    shell.exec(dir)
+  } else {
+    system(paste(Sys.getenv("R_BROWSER"), dir))
+  }
+}
+# open file
+opendir(paste0(getwd(), "/", path.fire))
+```
+
+
+When importing a data file with headers, R checks if the column names are syntactically valid (i.e. valid in R-code). If not, these are adjusted to make sure that they are usable in R. One way to avoid this kind of behavior, is to set the `check.names` argument to `FALSE`.
+
+```{r}
+danish <- read.table(path.fire, header = TRUE, check.names = FALSE)
+names(danish)
+```
+
+Note, however, that you will now have to select your columns using backticks (e.g. `df$`variable``).
+
+```{r}
+# The following does not work
+# danish$Loss-in-DKM
+# This does work
+head(danish$`Loss-in-DKM`)
+```
+
+You can also explicitly specify the column names and as well as column types/classes of the resulting data frame. You can do this by setting the `col.names` and the `colClasses` argument to a vector of strings. (Quote from DataCamp's 'Importing Data in R (Part 1)' course)
+
+```{r}
+path.hotdogs <- file.path(pathData, "hotdogs.txt")
+hotdogs <- read.table(path.hotdogs, header = FALSE, col.names = c("type", "calories", "sodium"))
+# display structure of hotdogs
+str(hotdogs)
+# edit the colClasses argument to import the data correctly: hotdogs2
+hotdogs2 <- read.table(path.hotdogs, header = FALSE, 
+                       col.names = c("type", "calories", "sodium"),
+                       colClasses = c("factor", "NULL", "numeric"))
+# display structure of hotdogs2
+str(hotdogs2)
+```
+What happened? What is the effect of specifying one of the `colClasses` as `NULL`?
+
+Another very useful function to explore your data.frame is the `summary()` function. This function can be used on a whole range of objects and provides you with a short summary of the object (as you might have expected).
+
+```{r}
+summary(danish)
+```
+
+Inspecting the data.frame, we see that the class of the variable `Date` is not correct. One way to convert this variable to an object with class `Date` is by using the `as.Date()` function.
+
+```{r}
+danish$Date <- as.Date(danish$Date, format = "%m/%d/%Y")
+str(danish)
+```
+
+To understand why `format = "%m/%d/%Y"`, you can check the help page of `strptime()`. Shortly summarized, `%m` indicates that month is given as a decimal number, `%d` that the day of the month is also given as a decimal number, `%Y` that year with century is given and the latter three are separated by `/` as this is also the delimiter that us used in the `Date` column. 
+```{r}
+?strptime
+OrigLocal = Sys.getlocale("LC_TIME")
+Sys.setlocale("LC_TIME", "English_United States.1252")
+as.Date("16-Apr-1963", format = "%d-%b-%Y")
+Sys.setlocale("LC_TIME", OrigLocal)
+```
+
+Or you can try to fix this directly when importing the `danish.txt`.
+```{r}
+path.fire <- file.path(pathData, "danish.txt")
+danish <- read.table(path.fire, header = TRUE, colClasses = c("Date", "numeric"))
+head(danish$Date)
+```
+
+Setting `colClasses` to `Date`, however, only works when the format is either `"%Y-%m-%d"` or `"%Y/%m/%d"` (see `?as.Date`). We therefore have to put in some extra effort and create a custom function/class to correctly import the `Date` variable.
+
+```{r}
+setClass("myDate")
+setAs("character", "myDate", function(from) as.Date(from, format = "%m/%d/%Y"))
+danish2 <- read.table(path.fire, header = TRUE, colClasses = c("myDate", "numeric"))
+str(danish2)
+```
+
+
+### Importing a .sas7bdat file
+
+When you decided to make the switch from SAS to R, you obviously made the right choice. SAS has been around for a very long time, but even since 1991 it was clear that R has always been the better choice.
+
+```{r}
+if(!"fortunes" %in% rownames(installed.packages()))
+        install.packages("fortunes")
+fortunes::fortune(22)
+fortunes::fortune(84)
+fortunes::fortune(224)
+```
+To import a SAS file that has a sas7bdat format, we use the `read.sas7bdat()` function from the `sas7bdat` package.
+
+```{r}
+if(!"sas7bdat" %in% rownames(installed.packages()))
+        install.packages("sas7bdat")
+library(sas7bdat)
+path.severity <- file.path(pathData, "severity.sas7bdat")
+severity <- read.sas7bdat(path.severity)
+ExploreDf(severity)
+```
+
+### Importing an .xlsx file
+
+You will import data from Excel using the `readxl` package (authored by Hadley Wickham and maintained by RStudio).
+
+Before you can start importing from Excel, you should find out which sheets are available in the workbook. You can use the `excel_sheets()` function for this. (Quote and example from DataCamp's 'Importing Data in R (Part 1)' course)
+```{r}
+# load the readxl package
+library(readxl)
+path.urbanpop <- file.path(pathData, "urbanpop.xlsx")
+excel_sheets(path.urbanpop)
+```
+
+You can import the Excel file with the `read_excel()` function. Here is the recipe:
+
+```{r}
+pop_1 <- read_excel(path.urbanpop, sheet = 1)
+pop_2 <- read_excel(path.urbanpop, sheet = 2)
+pop_3 <- read_excel(path.urbanpop, sheet = 3)
+str(pop_1)
+# put pop_1, pop_2 and pop_3 in a list: pop_list
+pop_list <- list(pop_1, pop_2, pop_3)
+```
+The object `pop_1` is a `tibble`, an object of `tbl_df` class (the 'tibble') that provides stricter checking and better formatting than the traditional data frame. The main advantage to using a `tbl_df` over a regular data frame is the printing: `tbl` objects only print a few rows and all the columns that fit on one screen, describing the rest of it as text. If you want to stick to traditional data frames, you can convert it using the `as.data.frame` function.
+
+```{r}
+pop_1_df <- as.data.frame(pop_1)
+str(pop_1_df)
+```
+
+In the previous demo you generated a list of three Excel sheets that you imported. However, loading in every sheet manually and then merging them in a list can be quite tedious. Luckily, you can automate this with `lapply()`. (Quote from DataCamp's 'Importing Data in R (Part 1)' course)
+
+```{r}
+pop_list <- lapply(excel_sheets(path.urbanpop), read_excel, path = path.urbanpop)
+str(pop_list)
+```
+
+Apart from path and sheet, there are several other arguments you can specify in `read_excel()`. One of these arguments is called `col_names`. By default it is `TRUE`, denoting whether the first row in the Excel sheets contains the column names. If this is not the case, you can set `col_names` to `FALSE`. In this case, R will choose column names for you. You can also choose to set col_names to a character vector with names for each column. (Quote from DataCamp's 'Importing Data in R (Part 1)' course)
+
+```{r}
+path.urbanpop_nonames <- file.path(pathData, "urbanpop_nonames.xlsx")
+# Import the the first Excel sheet of urbanpop_nonames.xlsx (R gives names): pop_a
+pop_a <- read_excel(path.urbanpop_nonames, col_names = FALSE)
+# Import the the first Excel sheet of urbanpop_nonames.xlsx (specify col_names): pop_b
+cols <- c("country", paste0("year_", 1960:1966))
+pop_b <- read_excel(path.urbanpop_nonames, col_names = cols)
+# Print the summary of pop_a
+summary(pop_a)
+# Print the summary of pop_b
+summary(pop_b)
+```
+In the code printed above, `paste0` (and also `paste`) converts its arguments (via `as.character`) to character strings, and concatenates them (in case of `paste` separating them by the string given by the argument `sep`, which is a single space by default). 
+
+Many other packages exist to import Excel data, including `XLConnect`, an Excel Connector for R that
+provides comprehensive functionality to read, write and format Excel data. See [DataCamp's Importing Data in R (Part 1)](https://campus.datacamp.com/courses/importing-data-in-r-part-1/) course.
+
+---
+
+## Basic data handling steps
+
+You will now learn some basic functions to handle data in R. You start with basic instructions (from `base` R) for data handling and more on data wrangling follows in Chapter \@ref(data-wrangling). Useful functions from `base` are `subset`, `sort`, `order`, `merge`, `cbind` and `rbind`. Manipulating the data typically consumes a lot of effort in the beginning, but will become second nature once you get the hang of it. 
+
+Manipulating the data often requires repeated operations on different sections of the data, in a 'split-apply-combine' way of working. Let's illustrate all of this below. Some of the examples that follow are taken from Michael Clark's `An introduction to R'. 
+
+### Subsetting
+
+The data set `state.x77` is available from the package `datasets`. This package contains a variety of data sets and some of them contain information on all 50 states of the United States of America. The `state.x77` data set, for example, is a matrix with 50 rows and 8 columns which contains a wealth of information on all 50 different states.
+```{r}
+?state.x77
+states <- data.frame(state.x77)
+ExploreDf(states)
+states[14, ]
+states[3, 6, drop = F] # use drop = FALSE to keep it as a data.frame
+states[, 'Frost'] 
+states$Frost
+```
+You will also use the data stored in `state.region`, a factor giving the region (Northeast, South, North Central, West) that each state belongs to.
+```{r}
+state.region
+length(state.region)
+# select those states that are in the south of the US 
+mysubset <- subset(states, state.region == "South")
+# subset a selection of variables
+str(states)
+(mysubset <- states[, c(1:2, 7:8)])
+(mysubset <- states[, c("Population", "Income", "Frost", "Area")])
+```
+
+Next to the function `subset()`, we can also use the vector indices (see Chapter \@ref(objects-data-types)). When using `which()`, it returns the indices for which the logical expression is `TRUE`. It is in fact always safer to use the logical statement in combination with `which`, since `which` automatically treats missing values as `FALSE`. Just look at what goes wrong in the following example.
+```{r}
+CopyStates = states
+CopyStates$Income[sample(1:nrow(CopyStates), 3, F)] = NA
+CopyStates[CopyStates$Income > 5000, ]
+CopyStates[which(CopyStates$Income > 5000), ]
+```
+
+
+### Find minimum or maximum
+
+A similar function to `which()` is the function `which.min()`, which returns the index of the smallest value in a vector. `which.max()` works in a similar way. Using the information stored in `states`, which states in the US have the smallest, respectively highest, population density?
+```{r}
+least_pop <- which.min(states$Population)
+states[least_pop, ]
+most_pop <- which.max(states$Population)
+states[most_pop, ]
+```
+
+Next to these functions, `pmin()` and `pmax()` are also incredibly useful. Let's illustrate the difference with the functions `min()` and `max()` with a short example.
+
+```{r}
+a <- 1:5
+b <- -1 * (1:5)
+min(a, b)
+pmin(a, b)
+max(a, b)
+pmax(a, b)
+```
+
+
+### Sorting
+
+To sort a vector, you can use the function `sort()`.
+
+```{r}
+sort(states$Population)
+sort(states$Population, decreasing = T)
+```
+This function, however, is not useful and even dangerous within data frames since you only sort the values of the vector itself. To sort data in a data frame, you use the function `order()` which returns the indices of the vector. Hence, to sort the states based on their population, you use the following code.
+```{r}
+head(sort(states$Population))
+head(order(states$Population))
+sort1.states <- states[order(states$Population), ]
+head(sort1.states)
+# sort by two variables
+sort2.states <- states[order(states$Illiteracy, states$Income), ]
+head(sort2.states)
+```
+
+By default, the sort order is increasing (or alphabetical in case of a character string). You can change this by setting `decreasing = TRUE`.
+
+```{r}
+# sort in reverse order
+sort3.states <- states[order(states$Life.Exp, decreasing = T), ]
+head(sort3.states)
+```
+
+### Merging
+
+To add a column to an existing data frame `Df`, you can either use `Df$NewVar <- 1` or `Df[["NewVar"]] <- 1`.
+```{r}
+Df <- data.frame(id = factor(1:12), group = factor(rep(1:2, each = 3)))
+str(Df)
+head(Df)
+x <- rnorm(12)
+y <- sample(70:100, 12)
+x2 <- rnorm(12)
+# add a column
+Df$grade <- y  # or Df[["grade"]] <- y
+head(Df)
+```
+
+To merge different data frames, you can use the function `merge()`. For this, we of course need a column in both data frames that's a unique identifier for each of the observations. Alternatively, you can use `cbind()`. I don't need to tell you that this of course comes with its own dangers and that you need to make sure that both data frames are then sorted.
+
+```{r}
+Df2 <- data.frame(id = Df$id, y)
+head(Df2)
+Df3 <- merge(Df, Df2, by = "id", sort = F) # using merge
+head(Df3)
+Df4 <- cbind(Df, x) # using cbind()
+head(Df4)
+```
+
+To add rows to an existing data frame, you use the function `rbind()`.
+```{r}
+# add rows
+Df2 <- data.frame(id = factor(13:24), 
+                 group = factor(rep(1:2, e = 3)), grade = sample(y))
+Df2
+Df5 <- rbind(Df, Df2)
+Df5
+rm(list = ls()[grepl("Df", ls())]) # Clean environment
+```
+
+### Aggregate
+
+People experienced with SQL generally want to run an aggregation and group by as one of their first tasks with R. `aggregate()` splits the data into subsets, computes summary statistics for each, and returns the result in a convenient form. 
+
+You will work with `diamonds`, a data set in the `ggplot2` package containing the prices and other attributes of almost 54,000 diamonds. `ggplot2` is a package authored and maintained by Hadley Wickham to `Create Elegant Data Visualisations Using the Grammar of Graphics'.
+```{r}
+library(ggplot2)
+head(diamonds)
+# average price for each type of cut
+aggregate(price ~ cut, diamonds, mean)
+aggregate(diamonds$price, list(diamonds$cut), mean)
+# do a manual check, using `subset()`
+s <- subset(diamonds, cut == 'Fair')
+mean(s$price)
+```
+
+Hence, with the above code we tell R to split the data set diamonds into subsets according to the values of the variable cut and to calculate the mean for each of the subsets. Let's break this code down to get a better grasp of what it does.
+1. `aggregate(x ~ SplitBy, Df, Function, ...)`
+  + `x ~ SplitBy`: We pass a formula which tells R to split the data frame Df according to the different values of the variable `SplitBy` and to pass the values of the variable `x` to the function `Function`.
+  + `Df`: The data frame to use.
+  + `Function`: The function that is computed on each of the subsets.
+  + `...` : Additional arguments that are passed to `Function`.
+  
+The ellipsis argument `...` is incredibly useful to pass arguments to the function. This way we are able to adjust the default arguments of the function that is used on each of the subsets. For example, when we have missing values for the variable price, we can tell R to remove these when computing the mean by setting `na.rm = TRUE`. The argument `na.rm` of the function `mean` takes a logical value indicating whether NA values should be stripped before the computation proceeds (see `?mean`)..
+
+```{r}
+# add arguments to the function called
+diamonds$price[sample(seq_len(nrow(diamonds)), 3, F)] <- NA
+aggregate(price ~ cut, diamonds, mean, na.action = NULL) # na.action is set to NULL for illustration purposes
+aggregate(price ~ cut, diamonds, mean, na.rm = TRUE, na.action = NULL)
+```
+
+The function `aggregate()` is often one of the first more 'complex' functions that you will use as a first-time user. If you are a bit confused, just try to play around with it a bit and have fun. Just load in the Pokémon data set from Kaggle (retrieved from https://www.kaggle.com/rounakbanik/pokemon) and play a bit with the aggregate function. Remember that it doesn't always have to be serious (unless you want to be the very best and catch 'em all).
+```{r}
+Pokemon <- read.csv("./data/pokemon.csv")
+Pokemon$capture_rate <- gsub(" .*", "", Pokemon$capture_rate)
+Pokemon$capture_rate <- as.numeric(Pokemon$capture_rate)
+head(aggregate(capture_rate ~ type1, Pokemon, mean))
+```
+
+
+Next to playing a bit around with the code, you also learn a great deal from other people's code and this is why we also included the following useful illustrations:
+```{r}
+s <- aggregate(price ~ cut, diamonds, mean)
+s
+dd <- merge(diamonds, s, by = "cut", sort = "FALSE")
+head(dd)
+head(diamonds)
+head(subset(dd, cut == "Very Good"))
+# change name of the column
+names(dd)[names(dd) == 'price.y'] <- 'average price'
+# add additional grouping variable
+aggregate(price ~ cut + color, diamonds, mean, na.rm = TRUE)
+# store results in an object
+res <- aggregate(price ~ cut + color, diamonds, mean, na.rm = TRUE)
+str(res)
+head(res)
+# aggregate two variables, combine with 'cbind'
+aggregate(cbind(price, carat) ~ cut, diamonds, mean)
+aggregate(cbind(price, carat) ~ cut + color, diamonds, mean)
+```
+
+## Exploratory Data Analysis (EDA)
+
+EDA is not a formal process with a strict set of rules. More than anything, EDA is a state of mind. During the initial phases of EDA you should feel free to investigate every idea that occurs to you. Some of these ideas will pan out, and some will be dead ends. As your exploration continues, you will home in on a few particularly productive areas that you'll eventually write up and communicate to others. (Quote from [@rds2016])
+
+### Exploring a numerical variable
+
+You will work with the `CPS1985` data from the `AER` package that accompanies [@AER2008].
+```{r, warning = FALSE, message = FALSE}
+library(AER)
+data("CPS1985")
+str(CPS1985)
+head(CPS1985) 
+summary(CPS1985$wage)
+```
+
+Let's start with the variable wage and quickly illustrate one of the dangers of using attach. The warning message tells us that, when we use the object `wage`, it will use the one that was created in our working directory/global environment.
+```{r}
+wage <- 25
+attach(CPS1985) # the warning message already tells you that it will use the object wage that was created before
+mean(wage)
+mean(CPS1985$wage)
+detach(CPS1985)
+# Use the function searchpaths() to see the 'hierarchy'
+```
+So instead of using attach, just use the `$` operator or export it to your global environment. If you don't want to type the full name of your data frame when using `$`, you can just rename it to something short such as `Df` and this makes typing `Df$Variable` a whole lot faster.
+
+
+```{r}
+# attach the data set; R knows where to find the variables
+wage <- CPS1985$wage
+summary(wage)
+is.numeric(wage)
+mean(wage)
+median(wage)
+fivenum(wage)	# Tukey's five number summary
+min(wage)
+max(wage)
+var(wage)
+sd(wage)
+hist(wage, freq = FALSE)
+hist(log(wage),
+     freq = FALSE,
+     nclass = 20,
+     col = "pink")
+lines(density(log(wage)), col = 4)
+```
+
+### Exploring a categorical (or: factor) variable
+
+```{r}
+occupation <- CPS1985$occupation
+str(occupation) # factor variable with 6 levels
+summary(occupation)
+nlevels(occupation)
+levels(occupation)
+```
+To compactify the output you will rename levels 2 and 6 of the factor variable 'occupation'.
+```{r}
+levels(occupation)[c(2, 6)] <- c("techn", "mgmt")
+summary(occupation)
+```
+Now you'll learn how to construct summary tables, barplots and pie charts in R.
+```{r}
+tab <- table(occupation)
+tab
+prop.table(tab)
+barplot(tab)
+pie(tab)
+pie(tab,col = gray(seq(0.4, 1.0, length = 6)))
+```
+
+### Exploring two categorical (or: factor) variables
+
+```{r}
+gender <- CPS1985$gender
+table(gender, occupation)
+prop.table(table(gender, occupation))
+prop.table(table(gender, occupation), 2)
+# use mosaic plot 
+plot(gender ~ occupation, data = CPS1985)
+```
+
+### Exploring one numerical and one categorical variable
+```{r}
+# here: apply 'mean(.)' to 'log(wage)' by 'gender'
+tapply(wage, gender, mean)
+options(digits=5)
+tapply(log(wage), list(gender, occupation), mean)
+# let's check these results
+# use subset(.) to extract part of the data
+s <- subset(CPS1985, select=c(gender, occupation, wage))
+s1 <- subset(s, gender == "female" & occupation == "technical")
+mean(log(s1$wage))
+```
+Now you'll build an appropriate visualization tool.
+```{r}
+# see e.g. http://www.r-bloggers.com/box-plot-with-r-tutorial/
+boxplot(log(wage) ~ gender)
+boxplot(log(wage) ~ gender + occupation, col="light blue")
+boxplot(log(wage) ~ gender + occupation, col="light blue", las=2)
+# make it a nice graph
+.pardefault <- par(no.readonly = T) # to store the default settings of par(.)
+boxplot(log(wage) ~ gender + occupation, col="light blue", las=2, par(mar = c(12, 5, 4, 2) + 0.1))
+par(.pardefault)
+```
+
+---
+
+## Exercises
+
+```{block get started data, type="learncheck", purl=FALSE}
+**_Learning check_**
+```
+1. Import the data set `na.txt` that is available in the folder 'data' that comes with the book.
+ + Use `read.table` and interpret the resulting data frame.
+ + Do you detect any problems (wrt missing values, strange observations)? Check for missing values using the `is.na` funtion applied to a variable from the `na` data set.
+ + If so, try solving those using the arguments of the `read.table` function. [Hint: check the argument `na.strings`] Check again for missing values.
+ + Make sure `female` is a factor variable (with two levels).
+ + Count the number of missing values per variable.
+
+2. (An exercise taken from [@AER2008]) "PARADE" is the Sunday newspaper magazine supplementing the Sunday or weekend edition of some 500 daily newspapers in the United States of America. An important
+yearly feature is an article providing information on some 120150 "randomly" selected
+US citizens, indicating their profession, hometown and state, and their yearly earnings.
+The Parade2005 (in library AER) data contain the 2005 version, amended by a variable
+indicating celebrity status (motivated by substantial oversampling of celebrities in these data). 
+For the Parade2005 data:
+ + Load the data `Parade2005` from the `AER` package, use `data("Parade2005")` to make the data accessible.
+ + Determine the mean earnings in California.
+ + Determine the number of individuals residing in Idaho.
+ + Determine the mean and the median earnings of celebrities. 
+ + Obtain boxplots of log(earnings) stratified by celebrity
+ + Plot the density of log(earnings), use `density`.
+ 
+3. You will almost always receive a clean data set when you have to use it for an assignment or when it's used in a course to illustrate something. In real-life, however, this will almost never be the case. There will be errors and it's important that you are able to handle these or at least notice these. Garbage in = Garbage out. So for this exercise, you have to look for inconsistencies in the data and use the basic data handling steps to solve them. We adjusted the state.x77 data set and you can find it in the data folder as the file States.csv. Load the package datasets, if you haven't already, and run the command `?state.x77` to obtain information on the variables.
+![](images/DirtyData.jpg)
+  + Import the csv file. Remember that there are multiple ways to import it and that a lot of things can go wrong (which is the goal of the exercise, we are terribly sorry). It's completely normal to get the error message `Error ... : more columns than column names`, since we did this on purpose. You will hate us now, but thank us later. Hint: `"\t"` is used for tab.
+  + Check if the file was imported correctly. Next to delimiters for the column values, there's also something called a decimal separator. As you might have expected, we also made sure that you cannot use the default argument here.
+  + Inspect the data frame and check if you notice something weird. Which variables contain some weird looking values?
+  + Some states claim that Jesus was executed in their state and that he resurrected. Can you find out which states claim to have witnessed this miracle? Use the function `pmax` to fix this problem.
+  + The population estimate is not correct for some states. Set these to `NA` and perform mean imputation for these cases (i.e. replace it with the mean of the available cases). Do the same for other variables with impossible/improbable values.
+  + The variables that had values replaced were Murder, Illiteracy, Population, Life.Exp and Area.
+```{block, type="learncheck", purl=FALSE}
+```

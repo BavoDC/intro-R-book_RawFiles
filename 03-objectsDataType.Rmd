@@ -1,0 +1,612 @@
+# Objects and data types in R {#objects-data-types}
+
+## How it works
+
+You will now start with writing R code in the console and you will explore a first script of R code. Every line of code is interpreted and executed by R. Once R is done computing, the output of your R code will be shown in the console. In some cases, however, something might go wrong (e.g. due to an error in the code) and then you will either get a warning or an error. R makes use of the # sign to add comments, so that you and others can understand what the R code is about. Just like Twitter! Luckily, here your comments are not limited to 280 characters. When passing lines of code preceded by # to the R console, these will simply be ignored and hence, will not influence your results. [Quote from DataCamp's 'Introduction to R' course.] In its most basic form, R can be used as a simple calculator. We illustrate the use of some arithmetic operators in the code below.
+
+```{r}
+# use 'right click, run line or selection', of Ctrl + R
+10^2 + 36
+```
+
+---
+
+## Objects {#subsec:Objects}
+A basic concept in (statistical) programming is called a *variable* and in R, this is commonly referred to as an *object*. 
+An object allows you to store a value (e.g. 4) or a more complex data structure (e.g. a database). You can then later use this object's name to easily access the value or the data structure that is stored within this object. [Quote from DataCamp's 'Introduction to R' course.]
+
+We create an object by giving it a name and using the assignment operator `<-` or `->` to assign a value to this object [@introRbookdown]. The value gets stored into the object to which the arrow is pointing. You can then view the value of the object by passing it to the console and the value will then be given as output.
+
+```{r}
+HappyObject <- 1
+-1 -> SadObject
+HappyObject
+SadObject # Don't be so negative
+```
+
+Can you guess what the output will be for the following code?
+
+```{r}
+HappyObject -> SadObject
+IAmConfused <- SadObject
+IAmConfused
+```
+
+Once we have created an object, we can easily perform some calculations with it.
+
+```{r}
+HappyObject * 5
+(HappyObject + 10) / 2
+SadObject^2
+```
+
+Further, `=` is an alternative assignment operator to `<-`, but is often discouraged for people new to R. The `<-` operator is considered to be more important by R and precedes `=` in importance (for a more detailed explanation see https://stackoverflow.com/questions/1741820/what-are-the-differences-between-and-assignment-operators-in-r). In most contexts, however, `=` can be used as a safe alternative [@introR]. Just know that you should use it with care.
+
+```{r, eval = FALSE}
+a <- b = 2      # throws an error, these 2 operators should not be mixed
+mean(b = 5:10)  # b is not an argument in this function and the object b is not created
+mean(b <- 5:10) # here, b is created and then considered to be the argument of the function
+b
+```
+In addition, the code above illustrates that, within functions, `=` is reserved to assign objects to the arguments.
+
+---
+
+## Everything is an object
+
+In R, an analysis is normally broken down into a series
+of steps. Intermediate results are stored in objects, with minimal output at
+each step (often none). Instead, the objects are further manipulated to obtain
+the information required. In fact, the fundamental design principle underlying R (and S) is "everything
+is an object". Hence, not only vectors and matrices are objects that
+can be passed to and returned by functions, but also functions themselves,
+and even function calls. (Quote from 'Applied Econometrics in R', by Kleiber & Zeileis) A variable in R can take on any available data type, or hold any R object.
+
+```{r}
+# see all objects stored in R's memory, where 'ls()' is for 'List Objects' 
+# and returns a vector of character strings
+# giving the names of the objects in the specified environment
+rm(list = ls()[!grepl("Object|Confused", ls(), perl = T)]) # Clean environment to have a short list
+ls()
+# to remove objects from R's memory, use
+rm(SadObject)
+ls()
+
+a <- 1
+b <- 2
+c <- 3
+d <- 4
+rm(a, b)
+rm(list = c('c', 'd'))
+a <- 1
+b <- 2
+c <- 3
+d <- 4
+# with the following code, you will remove everything in your working directory
+rm(list = ls())
+```
+
+All objects that you create, are stored in your current workspace and in RStudio you can view the list of objects by clicking on the 'Environment' tab in the top right hand pane. This workspace is also referred to as the global environment and this is where all the interactive computations take place (i.e. outside of a function) [@AdvancedR].
+
+![](images/WorkingSpace.png)
+
+Without going to much into the technical details, we can sort of compare your workspace with your own, special sandbox.
+
+![](images/Sandbox2.jpg)
+
+Everything that you create in your sandbox, stays there and gets saved in your `.RData` file when you close your session. When creating an Rstudio project, this `RData` gets automatically imported (with the default settings) when you open your project again and with this, your session gets 'restored' as it contains all objects you created last time. When creating a new project in a different directory, you create a new sandbox and this makes it easy to structure all of your different projects and analyses.
+
+---
+
+## Basic data types 
+
+R works with numerous data types. Some of the most basic types to get started with are:
+
+* Decimal values like 4.5 are called numerics.
+* Natural numbers like 4 are called integers. Integers are also numerics.
+* Boolean values (TRUE or FALSE) are called logical.
+* Dates or `POSIXct` for time based variables. Here, `Date` stores just a date and `POSIXct` stores a date and time. Both objects are actually represented as the number of days (Date) or seconds (POSIXct) since January 1, 1970.
+* Text (or string) values are called characters.
+
+Note how the quotation marks on the right indicate that "some text" is a character.
+
+```{r}
+my_numeric <- 42.5
+
+my_character <- "some text"
+
+my_logical <- TRUE
+
+my_date <- as.Date("05/29/2018", "%m/%d/%Y")
+```
+
+Note that the logical values `TRUE` and `FALSE` can also be abbreviated as `T` and `F`, respectively.
+
+```{r}
+T
+F
+```
+
+
+You can check the data type of an object beforehand. You can do this with the class() function.
+
+```{r}
+class(my_numeric)
+
+# your turn to check the type of 'my_character' and 'my_logical' and 'my_date'
+```
+
+When you are interested if an object is of a certain type, you can use the following functions:
+```{r}
+is.numeric(my_numeric)
+is.character(my_numeric)
+
+is.character(my_character)
+is.logical(my_logical)
+```
+
+
+This is incredibly useful when you have to check the input that's passed to a self-written function and to prevent that objects of a wrong type get passed. In addition, as you might have noticed, there's no function `is.Date`. No need to worry, however, because R's flexibility allows us to create a function like this ourselves, but we'll go over it more in detail in Chapter \@ref(functions). For now, just know that you can alternatively use the function `inherits` or `is`
+
+```{r}
+inherits(my_date, "Date")
+is(my_date, "Date")
+```
+
+
+---
+
+## Vectors 
+
+Vectors are one-dimension arrays that can hold numeric data, character data, or logical data. In other words, a vector is a simple tool to store data. In R, you create a vector with the combine function c(). You place the vector elements separated by a comma between the parentheses. (Quote from DataCamp's 'Introduction to R course') Vectors are key! Operations are applied to each element of the vector automatically, there is no need to loop through the vector.
+
+```{r}
+# To combine elements into a vector, use c():
+a = c(1, 2, 3, 4)
+```
+
+
+Once we have created this vector, we can pass it to functions to gather some useful information about it.
+
+```{r, eval = FALSE}
+?min
+?max
+?mean
+?sd
+?var
+
+min(a)
+max(a)
+mean(a)
+sd(a)
+var(a)
+```
+
+In addition to the above functions, `length` is another function that's incredibly useful and one of the functions you will use a lot. When passing a vector to this function, it returns the number of elements that it contains 
+
+```{r}
+length(a)
+```
+
+Often, we want to create a vector that's a sequence of numbers. In this case, we can use the `:` symbol to create a sequence of values in steps of one [@introRbookdown]. Alternatively, we can use the function `seq` which allows for more flexibility.
+
+
+```{r}
+# steps of one
+1:10
+seq_len(10)
+# specify the steps yourself
+seq(from = 0, to = 10, by = 0.5)
+# or the length of the vector, and the steps will be computed by R
+seq(from = 0, to = 10, length = 6)
+```
+
+When we need to repeat certain values, we can use the `rep` function.
+
+```{r}
+rep(1, times = 5)
+rep(1:5, times = 5)
+rep(1:5, each = 2)
+```
+
+### Vector indexing
+To access certain elements of a vector, we use the square brackets `[]`. For example,
+
+```{r}
+Abra = 1:5
+Abra[1]
+Abra[5]
+```
+
+To select a subset of elements, we can specify an *index vector* [@introR] that specifies which elements should be selected and in which order.
+
+```{r}
+Abra[c(2, 4)]
+Abra[c(4, 2)]
+```
+
+The index vector can be of four different types [@introR]:
+
+
+1. A logical vector.
+```{r}
+Abra[c(TRUE, FALSE, TRUE, TRUE, FALSE)]
+Kadabra <- Abra > 3
+Kadabra
+Abra[Kadabra]
+```
+2. A vector with positive indices, which specifies which elements should be selected.
+```{r}
+Abra[1:3]
+```
+3. A vector with negative indices, which specifies which elements should be *excluded*.
+```{r}
+Abra[-c(1:3)]
+```
+4. A vector of character strings, in case of a named vector. This is then similar to the index vector with positive indices, but now we select the items based on their names. This will be particularly useful later on, when we are working with data frames.
+```{r}
+a <- 1:3
+names(a) <- c("Squirtle", "Bulbasaur", "Charmander")
+a
+a["Squirtle"]
+# or
+IChooseyou <- c("Charmander")
+a[IChooseyou]
+```
+
+Next to selecting elements, we can also use this to perform an operation on these elements only.
+
+```{r}
+a[1] = 25
+a
+```
+
+### Character and logical vectors
+A vector can either hold numeric, character or logical values. 
+```{r}
+family <- c("Katrien", "Jan", "Leen")
+family
+family[2]
+str(family) # str() displays the structure of an R object in compact way
+class(family)
+```
+
+In addition, you can give a name to the elements of a vector with the `names()` function. Here is how it works
+
+```{r}
+my_vector <- c("Katrien Antonio", "teacher")
+names(my_vector) <- c("Name", "Profession")
+my_vector
+```
+
+
+Important to remember is that a vector can only hold elements of the same type. Consequently, when you specify elements of different types in a vector, it saves it to that type that contains the most information (logical < numeric < character).
+```{r}
+c(0, TRUE)
+c(0, "Character")
+```
+
+### Missing values
+When working with real-life data, you are confronted with missing data  more often than you'd care to admit. The values are indicated by `NA` and any operation on this value will remain `NA`. To assess which elements are missing in a vector, you can use the function `is.na`.
+```{r}
+a <- c(1:2, NA, 4:5)
+a
+is.na(a)
+```
+
+As it returns a logical vector, we can use it as an index vector.
+```{r}
+a[is.na(a)]
+```
+
+### Logical operators
+We are able to create logical expressions using the logical operators `<`, `<=`, `>`, `>=`, `==`, where the last one is reserved exact equality. This enables us to select subset of elements. Further, we can combine logical expressions using `&` or `|` to denote their intersection or union, respectively.
+
+```{r}
+a <- 1:5
+a > 3
+a == 3
+a[a > 2 & a < 4]
+a[a == 3 | a == 5]
+```
+To get the negation of a logical expression, we make use of the `!` operator.
+
+```{r}
+FALSE
+!FALSE
+b <- c(TRUE, FALSE, TRUE, TRUE)
+!b
+```
+
+This `!` operator can then be used for a whole range of useful manipulations. Going back to the vector with missing values, we can use this to exclude the missing values in the vector.
+
+```{r}
+a = c(1:2, NA, 4:5)
+a[!is.na(a)]
+na.omit(a) # alternative to omit missing values
+```
+
+
+The above also illustrates that we can combine multiple statements or manipulations in one line of code. Combining them gives us a very powerful tool to handle and analyze data in an efficient way.
+
+```{r}
+a <- -5:5
+max(a[a > 0 & a <= 3])
+```
+
+
+### Factors
+To specify that you have a vector with a discrete classification, we make use of a *factor* object which can either be ordered or unordered. These are mainly used in formulae, but we will already introduce the basics here.
+
+```{r}
+Fruits <- c("Apple", "Banana", "Grape", "Lemons")
+Fruits <- factor(Fruits)
+Var    <- rep(1:4, each = 2)
+Var    <- factor(Var, levels = 1:4, labels = c("Apple", "Banana", "Grape", "Lemons"))
+Var
+levels(Var)
+nlevels(Var)
+```
+Be careful, however, when converting factor variables to numeric. The factor variables have an underlying numeric value assigned to them and you should therefore always be careful when converting them.
+
+```{r}
+as.numeric(Var)
+a <- as.character(c(3, 5, 29, 5))
+a <- factor(a)
+a
+as.numeric(a)
+```
+
+
+---
+
+## Matrices
+
+In R, a matrix is a collection of elements of the same data type (numeric, character, or logical) arranged into a fixed number of rows and columns. Since you are only working with rows and columns, a matrix is called two-dimensional. You can construct a matrix in R with the `matrix()` function. (Quote from DataCamp's 'Introduction to R course') 
+
+```{r}
+# a 3x4 matrix, filled with 1,2,..., 12
+matrix(1:12, 3, 4, byrow = TRUE)
+matrix(1:12, byrow = TRUE, nrow = 3)
+# hmmm, check help on 'matrix'
+? matrix
+```
+
+In addition to the function `matrix`, we can also create matrices by combining vectors through use of the `cbind` and `rbind` functions.
+
+```{r}
+# one way of creating matrices is to bind vectors together
+cbind(1:2, 6:9)     # by columns
+rbind(1:3, -(1:3))  # by rows
+m <- cbind(a = 1:3, b = letters[1:3])
+m
+rbind(a = 1:3, b = letters[1:3])
+# ask help, what is the built-in 'letters'?
+? letters
+```
+
+
+### Matrix operations and indexing
+Matrices and their theory are an essential part of linear algebra and R therefore has a lot of functions specifically designed for matrices. 
+
+```{r}
+# create matrix object 'm'
+x <- matrix(1:12, 3, 4)
+x
+nrow(x)
+ncol(x)
+dim(x)
+t(x)    # matrix transpose
+x = matrix(1:4, nrow = 2)
+x %o% x          # outer product
+outer(x, x, "*") # alternative
+diag(x)          # extract diagonal elements
+det(x)           # determinant
+eigen(x)         # eigenvalues and eigenvectors
+```
+
+An important difference with other statistical software programs, is that `*` is used for element-wise multiplication. When you want to multiply matrices, you should use the `%*%` operator.
+
+```{r}
+x * x        # element-wise multiplication
+t(x) %*% x   # use %*% for matrix multiplication
+crossprod(x) # alternative to t(x) %*% x
+x %*% t(x)
+tcrossprod(x)
+```
+
+Further, to get the inverse of a matrix, we use the `solve` function.
+```{r}
+solve(x)
+```
+
+
+
+To select a subset of elements of a matrix, we again use vector indices within the square brackets `[]`. When we only want to select certain rows, columns or both, we put a comma in the square brackets.
+
+
+```{r}
+x[1:5]  # select first 5 elements, starts from 1st element from the 1st column and proceeds to the next elements in the 1st column
+x[1, ]  # select first row
+x[, 1]  # select first column
+x[2, 2] # select fourth element in fourth column
+```
+
+---
+
+## Lists
+A list in R allows you to gather a variety of objects under one object in an ordered way. These objects can be matrices, vectors, data frames, even other lists, etc. It is not even required that these objects are related to each other in any way. You could say that a list is some kind super data type: you can store practically any piece of information in it! (Quote from DataCamp's 'Introduction to R course')
+
+```{r}
+# a first example of a list
+L <- list(one = 1, two = c(1, 2), five = seq(1, 4, length=5),
+          six = c("Katrien", "Jan"))
+names(L)
+summary(L)
+class(L)
+str(L)
+
+# list within a list
+# a list containing: a sample from a N(0,1), plus some markup
+# list within list
+mylist <- list(sample = rnorm(5), family = "normal distribution", parameters = list(mean = 0, sd = 1))
+mylist
+str(mylist)
+```
+
+The objects stored on the list are known as its components [@introR] and to access these components, we either use a numerical value indicating the position in the list or the name of the component (only possible when it has been given a name of course).
+
+```{r}
+# now check
+mylist[[1]]
+mylist[["sample"]]
+```
+
+If the components have names, we can also access them using the `$` operator in the following way.
+
+```{r}
+mylist$sample
+mylist$parameter
+mylist$parameters$mean
+```
+
+Moreover, we can even access the elements of the component in the same way as we did before.
+```{r}
+mylist[[1]][2:4]
+```
+To access lists within lists, we use the following code
+```{r}
+Dream = list(WithinADream = list(WithinAnotherDream = "DieTraumdeutung"))
+Dream$WithinADream$WithinAnotherDream
+Dream[[1]][[1]]
+```
+We use double square brackets to get the component in its original form. If we just use single brackets, we get it as an object of class list.
+```{r}
+Dream = list(WithinADream = "SomethingFunny")
+class(Dream[[1]])
+class(Dream[1])
+```
+
+
+
+---
+
+## Data frames
+
+Most data sets you will be working with will be stored as data frames. A data frame has the variables of a data set as columns and the observations as rows. This will be a familiar concept for those coming from different statistical software packages such as SAS or SPSS. 
+
+First, you will look at a 'classic' data set from the `datasets` package that comes with the base R installation. The `mtcars` (Motor Trend Car Road Tests) data was extracted from the 1974 Motor Trend US magazine, and comprises fuel consumption and 10 aspects of automobile design and performance for 32 automobiles (1973-74 models). (Quote from DataCamp's 'Introduction to R course')
+
+```{r, eval=FALSE}
+mtcars
+```
+```{r}
+str(mtcars)
+head(mtcars)
+tail(mtcars)
+```
+
+Since using built-in data sets is not even half the fun of creating your own data sets, you will now work with your own personally created data set. (Quote from DataCamp's 'Introduction to R course')
+
+```{r}
+Df <- data.frame(x = c(11, 12, 7), y = c(19, 20, 21), z = c(10, 9, 7))
+# quick scan of the object 't'
+summary(Df)
+str(Df)
+# another way to create the same data frame
+x <- c(11, 12, 7)
+y <- c(19, 20, 21)
+z <- c(10, 9, 7)
+Df <- data.frame(x, y, z)
+```
+
+Accessing elements in a data frame is similar to how we access elements in a matrix. We can again use an index vector to access either the rows, columns or both. In addition, similar to lists, we can access columns using the `$` operator or using the double square brackets.
+
+```{r}
+Df[1:2, ]
+Df[, 2:3]
+Df$x
+Df[["x"]]
+Df[[1]]
+```
+
+In essence, a data frame can be seen as a combination of a list and a matrix. The variables are its components and the object has a separate class `"data.frame"` [@introR]. 
+```{r}
+is.list(Df)
+class(Df)
+```
+
+But that's enough technical stuff for now, let's do our first data exploration and calculate the `mean` of the variable `z` in data frame `t`!
+```{r}
+mean(Df$z)   
+mean(z)   # does not work, why not?
+```
+
+The code `mean(z)` doesn't work, because z wasn't defined in the global environment but only within your data frame. Going back to the sandbox analogy, you can look at the data frame as a mini-sandbox within your bigger sandbox. Everything that gets defined in this sandbox, stays there. This way, we keep our sandbox nice and organized. Just imagine the mess when all of your variables of your data frame would just float around in your sandbox. 
+
+![](images/Sandbox.jpg)
+
+One 'dirty' way to access the variables in your data frame without specifying the said data frame, is to use the `attach` function. With this function, we tell R that it also has to search within the attached data frame.
+
+
+```{r}
+rm(x, y, z) # Remove variables
+attach(Df)
+mean(z)
+detach(Df)
+```
+
+Using attach, however, can be dangerous. If you created an object with a similar name to a variable in your data frame, R will **not** use the variable in your data frame but the one that was created before.
+
+```{r}
+x = rnorm(1e2)
+z = "KadabraCastsConfusion"
+attach(Df)
+mean(x)
+mean(Df$x)
+mean(z)
+detach(Df)
+```
+One way to avoid this, is to use the function `with`.
+
+```{r}
+with(Df, mean(z))
+```
+
+More on data frames
+
+```{r}
+# this does not work
+# Df <- data.frame(x = c(11,12), y = c(19,20,21), z = c(10,9,7)) 
+# but you _can_ do
+Df <- data.frame(x = c(11, 12, NA), y = c(19, 20, 21), z = c(10, 9, 7))
+# data frame with different types of information
+b <- data.frame(x = c(11, 12, NA), y = c("me", "you", "everyone"))
+str(b)
+```
+
+In previous versions of R, character variables in a data frame were automatically converted to factor variables. They were briefly mentioned before and in essence, factor variables are used to store categorical variables (i.e. nominal, ordinal or dichotomous variables). Categorical variables can only take on a limited number of values. Conversely, continuous variables can take on an uncountable set of values. If you want to R to convert the variables with character strings to factor variables when creating a data frame, just specify `stringsAsFactors = TRUE`.
+
+```{r}
+b <- data.frame(x = c(11, 12, NA), y = c("me", "you", "everyone"), stringsAsFactors = TRUE)
+str(b)
+```
+
+
+--- 
+
+## Exercises
+
+```{block lc-summarize, purl=FALSE}
+**_Learning check_**
+```
+
+1. Explore the objects and data types in R.
++ Create a vector `fav_music` with the names of your favorite artists.
++ Create a vector `num_records` with the number of records you have in your collection of each of those artists.
++ Create vector `num_concerts` with the number of times you attended a concert of these artists.
++ Put everything together in a data frame, assign the name `my_music` to this data frame and change the labels of the information stored in the columns to `artist`, `records` and `concerts`.
++ Extract the variable `num_records` from the data frame `my_music`. Calculate the total number of records in your collection (for the defined set of artists). Check the structure of the data frame, ask for a summary.
+
+```{block, purl=FALSE}
+```

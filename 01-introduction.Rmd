@@ -1,0 +1,79 @@
+# Introduction {#index}
+
+This book assumes no prerequisites: no algebra, no calculus, and no prior programming/coding experience. This is intended to be a gentle introduction to the practice of analyzing data and answering questions using data the way data scientists, statisticians, data journalists, and other researchers would. Our inspiration is the open source ModernDive book [@moderndive2018], with many tweaks, additions and changes by Katrien Antonio. This text book is primarily written for actuarial students as well as practitioners, but is of course not limited to the latter group.
+
+* We get started with R in Chapter \@ref(getting-started): R vs RStudio, coding in R, installing and loading R packages, the references used in this book.
+* Thereafter, we look at different types of data and objects in R, including vectors, matrices, data frames and lists in Chapter \@ref(objects-data-types).
+* We get started with data in Chapter \@ref(started-with-data).
+* Data visualisation is the focus of Chapter \@ref(data-viz).
+* More on data wrangling in Chapter \@ref(data-wrangling).
+* As probability distributions are of special importance to actuaries, these are discussed in Chapter \@ref(probs).
+* Using and writing functions is the topic of Chapter \@ref(functions).
+* Optimization tools help to optimize non straightforward likelihoods as discussed in Chapter \@ref(optimization).
+* First examples of model building focus on linear and generalized linear models in Chapters \@ref(lms) and \@ref(glms)
+* References follow in \@ref(biblio).
+
+
+## Learning outcomes {#subsec:learning-goals}
+
+By the end of this book, you should have mastered the following concepts
+
+1. How R can be used as an environment for data handling, visualization, analysis and programming.
+1. How to use R to to import/export data, to explore and manipulate data, to create insightful graphics and to write functions.
+1. How to find help in the 'R community', including finding examples of coding, books, support.
+1. How to perform simple tasks with R and how to look for more advanced tasks, further learning with specific packages.
+1. How to answer actuarial questions related to pricing and reserving.
+1. How to effectively create "data stories" using these tools.
+
+
+This book will help you develop your "data science toolbox", including tools such as data visualization, data formatting, data wrangling, and data modeling using regression models.
+
+---
+
+## Data/science pipeline {#subsec:pipeline}
+
+Within the data analysis field there are many sub-fields that we will discuss throughout this book (though not necessarily in this order):
+
+- data collection
+- data wrangling
+- data visualization
+- data modeling
+- interpretation of results
+- data communication/storytelling
+
+These sub-fields are summarized in what Grolemund and Wickham term the "data/science pipeline" in Figure \@ref(fig:pipeline-figure).
+
+```{r pipeline-figure, echo=FALSE, fig.align='center', fig.cap="Data/Science Pipeline"}
+knitr::include_graphics("images/tidy1.png")
+```
+
+---
+
+## Inspirations and references
+
+In essence, this book combines my own research papers (Katrien Antonio) and course notes with many useful quotes and examples from my favourite R books listed below.
+
+This book is very much inspired by the following books or courses:
+
+- "Mathematical Statistics with Resampling and R" [@hester2011],
+- "OpenIntro: Intro Stat with Randomization and Simulation" [@isrs2014], and
+- "R for Data Science" [@rds2016],
+- "Moderndive" [@moderndive2018],
+- Jared Lander's "R for everyone" [@lander2017]
+- "Applied Econometrics with R" [@AER2008]
+- "An Introduction to Statistical Learning" [@ISL2017]
+- all the work of Michael Clark, see [Michael Clark's website](http://m-clark.github.io/cv.html)
+- many, many courses on the [DataCamp](www.datacamp.com) platform, including Katrien Antonio and Roel Verbelen's [Valuation of Life Insurance Products in R](https://www.datacamp.com/courses/2333).
+
+
+---
+
+## About this book {#sec:about-book}
+
+This book was written using RStudio's [bookdown](https://bookdown.org/) package by Yihui Xie [@R-bookdown]. This package simplifies the publishing of books by having all content written in [R Markdown](http://rmarkdown.rstudio.com/html_document_format.html). The bookdown/R Markdown source code for all versions of ModernDive is available on GitHub.
+
+Could this be a new paradigm for textbooks? Instead of the traditional model of textbook companies publishing updated *editions* of the textbook every few years, we apply a software design influenced model of publishing more easily updated *versions*.  We can then leverage open-source communities of instructors and developers for ideas, tools, resources, and feedback. As such, we welcome your pull requests.
+
+Finally, feel free to modify the book as you wish for your own needs, but please list the authors at the top of `index.Rmd` as "Chester Ismay, Albert Y. Kim, and YOU!" **So, that is exactly what Katrien Antonio did!**
+
+---

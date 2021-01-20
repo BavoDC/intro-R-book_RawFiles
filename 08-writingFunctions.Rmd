@@ -1,0 +1,698 @@
+# Writing functions in R {#functions}
+
+## Conditionals and control flow
+
+In this chapter you'll learn about relational operators to compare R objects and logical operators to combine logical expressions. Next, you'll use this knowledge to build conditional statements. [Quote from DataCamp's `Intermediate R' course]
+
+Make sure not to mix up `==` and `=`, where the latter is used for assignment and the former checks equality (see Section \@ref(subsec:Objects)). 
+```{r}
+3 == (2 + 1)
+"intermediate" != "r"
+TRUE != FALSE
+"Rchitect" != "rchitect"
+```
+
+Now you'll focus on inequalities.
+```{r}
+(1 + 2) > 4
+"dog" < "Cats"
+TRUE <= FALSE
+```
+
+For string comparison, R determines the greater than relationship based on alphabetical order. Also, keep in mind that `TRUE` corresponds to 1 in R, and `FALSE` coerces to 0 behind the scenes. 
+
+R's relational operators also work on vectors.
+```{r}
+katrien <- c(19, 22, 4, 5, 7)
+katrien > 5
+jan <- c(34, 55, 76, 25, 4)
+jan <= 30
+```
+---
+
+## Logical operators
+
+We already discussed the logical operators in Chapter \@ref(objects-data-types), so you already know the basics. Can you predict what the outcome will be of the following statements?
+
+```{r, eval = FALSE}
+TRUE & TRUE
+FALSE | TRUE
+5 <= 5 & 2 < 3
+3 < 4 | 7 < 6
+```
+
+The logical operators applied to vectors
+
+```{r}
+katrien > 5 & jan <= 30
+```
+
+## Conditional statements
+We encounter conditional statements on a daily basis. Just think of the following behavior that perfectly illustrates this.
+
+```{r}
+FunnyJoke <- TRUE
+if(FunnyJoke) {
+  cat("Hahahaha =D")
+} else {
+  cat("*Cough* awkward silence...")
+}
+FunnyJoke <- FALSE
+if(FunnyJoke) {
+  cat("Hahahaha =D")
+} else {
+  cat("*Cough* awkward silence...")
+}
+```
+With this, we illustrated the basic concept of a conditional statement and with it, a conditional execution. We basically read this code as `if` this statement is `TRUE` then we do this. If it is `FALSE`, we do another thing. With the above example, it is quite obvious. If the joke is funny, we laugh. If not, an awkward silence follows.
+
+![](images/ifelse.jpeg)
+
+We can also just use the `if` without specifying `else` (make sure your volume is not at max when running this code and wearing a headphone).
+```{r, eval = FALSE}
+SoundCheck <- TRUE
+if(SoundCheck) {
+  beepr::beep(8)
+}
+```
+
+We can also use the function `ifelse`, which is a vectorized version of the `if`/`else` construct [@introRbookdown].
+
+```{r}
+FunnyJoke <- c(TRUE, FALSE)
+CondTRUE  <- "Hahaha =D"
+CondFALSE <- "*Cough* awkward silence..."
+ifelse(FunnyJoke, CondTRUE, CondFALSE)
+```
+When using the `ifelse()` function, you have to make sure that you know what it does. `ifelse(test, yes, no)` returns a vector of the same length as `test`, with elements `yes[i]` when `test[i]` is `TRUE` and `no[i]` when `test[i]` is `FALSE`. This might sound confusing, so let's just illustrate it with an example.
+
+```{r}
+a <- -1:1
+b <- rep("< 0", length(a))
+c <- rep(">= 0", length(a))
+ifelse(a < 0, b, c)
+```
+<!-- This is all very logical when you're reading this, but as always with coding, things can go wrong quickly when you don't pay attention. Suppose you have a data frame with variables `x` and `y`. When the value for `x` is negative, you want to take the maximum of `x` and `y`. If `x >= 0`, then you want to keep the value of  -->
+<!-- ```{r} -->
+<!-- df <- data.frame(x = -5:5, y = 10:0) -->
+<!-- with(df, ifelse(x <= 0, max(x, y), x)) -->
+<!-- ``` -->
+
+We can also use multiple nested `if` ... `else` statements.
+
+```{r, eval = FALSE}
+ShellExec  <- function(x) {
+      # replacement for shell.exe (doesn't exist on MAC)
+      if (exists("shell.exec",where = "package:base"))
+            return(base::shell.exec(x))
+      comm <- paste("open",x)
+      return(system(comm))
+}
+Samples <- 1:3
+SampleVideo <- sample(Samples, 1, FALSE)
+OpenVid <- 
+  if(SampleVideo == 1) {
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  } else if(SampleVideo == 2) {
+    "https://www.youtube.com/watch?v=CsGYh8AacgY&t=12s"
+  } else {
+    "https://www.youtube.com/watch?v=1g9sneS2MF4" 
+  }
+ShellExec(OpenVid)
+SampleVideo <- sample(Samples[!1:3 %in% SampleVideo], 1, FALSE)
+```
+
+
+---
+
+## Loops 
+
+When we have to perform a repetitive task, loops are the way to go. This repetitive task is then executed within each loop for a specified number of times or until a specific condition is met. Within R, there are three main types of loops, the `for` loop, the `while` loop and the `repeat` loop \@cite(introRbookdown).
+
+### The for loop
+The `for` loop is the most well known loop and also one of the most common loops within programming languages. The following example illustrates how `for` loops work.
+
+```{r}
+for(i in 1:5) {
+  print(i)
+}
+```
+
+In this example, we *loop* over the vector `1:5` and `i` is used as an index or counter. The inner part of the `for` loop is then repeated for every iteration. Breaking it down to the basics, we tell R to repeat the inner part (i.e. the code within the curly braces `{}`) 5 times (`length(1:5)`), taking subsequent values of the vector `1:5` in every loop and to keep track of the iteration with `i`. 
+
+Hence, for the first iteration, `i` gets the first value of the vector `1:5` which is `1` and runs the code `print(i)`. In the second iteration, it gets the value `2` and so on.
+
+<!-- ![](images/ForLoopAdj.png) ![](images/ForLoopSimpsons.png)  -->
+
+```{r image_grobs, fig.width = 5, fig.height = 5, fig.show = "hold", out.width  =  "50%", echo = FALSE, fig.align = "center"}
+knitr::include_graphics(c("images/ForLoopAdj.png", "images/ForLoopSimpsons.png"))
+```
+
+
+
+The counter is not limited to `i`, but basically every valid name can be used. Can you guess what the following output will be?
+```{r}
+primes <- c(2, 3, 5, 7, 11, 13)
+
+# loop version 1
+for (p in primes) {
+  print(p)
+}
+```
+
+When working with loops, we have to be careful to not get stuck in an infinite loop. Even though this is more common in `while` loops, this can also happen in `for` loops.
+![](images/InfiniteLoop.png)
+
+For example, when we adjust the counter `i` in the inner part, we get stuck in an infinite loop. One way to get out of this loop, is by using the `break` statement.
+
+```{r}
+LoopIter <- 1
+for(i in 1:3) {
+  i <- 1
+  print(i)
+  LoopIter <- LoopIter + 1
+  if(LoopIter > 5)
+    break
+}
+```
+
+Consequently, when using a for loop, make sure that you don't adjust the counter variable `i` that keeps track of the iterations! To make sure that everything goes as expected in the inner part of your `for` loop, you can always run a test by first creating `i <- 1` (or whatever value of the vector you are looping over) for example and then run the inner part.
+
+To save the results of each iteration, we can basically use any data structure. A list is most often used, as its structure is quite intuitive to save the results of our loop. To save our results in this way, we create an empty list. Let's work with the data base `birthwt` from the package `MASS`
+
+```{r}
+library(MASS)
+bwt <- with(birthwt, {
+race <- factor(race, labels = c("white", "black", "other"))
+ptd <- factor(ptl > 0)
+ftv <- factor(ftv)
+levels(ftv)[-(1:2)] <- "2+"
+data.frame(low = factor(low), age, lwt, race, smoke = (smoke > 0),
+           ptd, ht = (ht > 0), ui = (ui > 0), ftv)
+})
+```
+
+
+```{r}
+Cols      <- colnames(bwt)
+DescrVars <- list()
+for(Var in Cols) {
+  x <- bwt[, Var]
+  DescrVars[[Var]] <- 
+    if(is.numeric(x)) {
+      mean(x)
+    } else {
+      table(x)
+    }
+}
+DescrVars
+```
+
+When using loops, it is also important to try to be as efficiently as possible by avoiding repetition within the loop. Try to avoid recomputing the same thing within the same loop. This is why we use `x <- bwt[, Var]` in the above example and not
+```{r, eval = FALSE}
+DescrVars <- list()
+for(Var in Cols) {
+  DescrVars[[Var]] <- 
+    if(is.numeric(bwt[, Var])) {
+      mean(bwt[, Var])
+    } else {
+      table(bwt[, Var])
+    }
+}
+```
+
+By avoiding repetition, the code will run faster and this will be more important when working with large inner functions or large data sets. In addition, the chance of a coding error is also smaller in this case.
+
+#### Nested for loops
+We can also use a `for` loop within another `for` loop and that's what we called nested `for` loops. For example,
+
+
+```{r}
+Alph = matrix(letters[1:4], nrow = 2)
+for(j in 1:ncol(Alph)) {
+  for(i in 1:nrow(Alph)) {
+    cat(paste0("\nAlph[",i, ", ", j , "]  = ", Alph[i, j], "\n"))
+  }
+}
+```
+To save the results of nested loops, lists are the perfect type of object. In order to be able to save the results in an empty list (which does not have the nested structure yet), we have to use names when saving these in the slots of the list.
+
+```{r}
+Results <- list()
+for(j in seq_len(ncol(Alph))) {
+  for(i in seq_len(nrow(Alph))) {
+    Results[[paste0("Column", j)]][[paste0("Row", i)]] <- paste0("Alph[",i, ", ", j , "]  = ", Alph[i, j])
+  }
+}
+Results
+```
+
+Alternatively, we can already specify the dimensions of the nested list using the following code.
+```{r}
+Results <- list(vector("list", 2), vector("list", 2)) # Create an empty nested list
+for(j in seq_len(ncol(Alph))) {
+  for(i in seq_len(nrow(Alph))) {
+    Results[[j]][[i]] <- paste0("Alph[",i, ", ", j , "]  = ", Alph[i, j])
+  }
+}
+Results
+```
+
+### The while loop
+
+With a `while` loop, you repeat the inner part until some logical condition is met.
+```{r, eval = FALSE}
+while(LogicalCondition) {
+  DoSomething("ButIDon'tKnowWhat")
+}
+```
+
+Take, for example, that we have 64 tasks on our to-do list and we want to get at least 5 tasks done for today.
+```{r}
+todo <- 10
+
+while (todo > 5) {
+  cat(todo, "tasks left\n")
+  todo <- todo - 1
+}
+todo
+```
+
+Another example is the following.
+```{r}
+Tired <- TRUE
+Sleep <- 0
+while(Tired) {
+  Sleep <- Sleep + 1
+  if(Sleep >= 8)
+    Tired <- FALSE
+}
+Tired
+```
+As with `for` loops, we can also use the `break` statement to stop the loop.
+
+```{r}
+Tired <- TRUE
+Sleep <- 0
+while(Tired) {
+  Sleep <- Sleep + 1
+  if(Sleep >= 8)
+    break
+}
+Sleep
+```
+The example below puts many things together (taken from DataCamp's `Intermediate R' course).
+```{r}
+i <- 1
+
+while (i <= 10) {
+  print(3 * i)
+  if ( (3 * i) %% 8 == 0) {
+    break
+  }
+  i <- i + 1
+}
+```
+
+The `repeat` loop is similar to the `while` loop, but has no conditional check [@introRbookdown]. So in this case, you have to make sure that you don't get stuck in an infinite loop by building in a `break` statement.
+
+```{r}
+i <- 0
+repeat {
+  print("Eat")
+  print("Sleep")
+  print("Rave")
+  print("Repeat")
+  i <- i + 1
+  if(i >= 3)
+    break
+}
+```
+
+
+
+---
+
+## Functions in R
+The book 'An Introduction to R' [@introRbookdown] gives a splendid (and funny) description of functions:  
+*Functions are your loyal servants, waiting patiently to do your bidding to the best of their ability. They’re made with the utmost care and attention … though sometimes may end up being something of a Frankenstein’s monster - with an extra limb or two and a head put on backwards. But no matter how ugly they may be, they’re completely faithful to you.*  
+
+*They’re also very stupid.*
+
+### Using a function
+Throughout this book, we have already been using functions, but what exactly is a function? Let's start from a classic one, the `mean()` function.
+```{r}
+? mean
+help(mean)
+args(mean)
+```
+
+Basically, we give input to this function and it will return the arithmetic mean. In `mean(x, trim = 0, na.rm = FALSE, ...)` `x` is required; if you do not specify it, R will throw an error. This is a good thing, because you of course need to tell R of what object you want to compute the mean. Here, `x` is an argument of the function `mean()` and with `mean(x = a)`, you tell R to compute the mean of the object `a`. `trim` and `na.rm` are optional arguments: they have a default value which is used if the arguments are not explicitly specified. [Quote from DataCamp's 'Intermediate R' course.]
+
+You will now use the `mean` function as follows
+```{r}
+katrien <- c(2, 9, 6, 8, NA)
+
+mean(katrien)
+
+mean(katrien, na.rm = TRUE)
+```
+
+Functions return objects that can be used elsewhere. As such, you can use a function within function. 
+```{r}
+katrien <- c(2, 9, 6, 8, NA)
+jan <- c(0, 3, 2, NA, 5)
+katrien - jan
+mean(abs(katrien - jan), na.rm = TRUE)
+```
+
+
+### Write your own function
+The ability to use self-written functions makes R incredibly powerful, efficient, convenient and elegant. Once you learn how to write your own functions, programming with R will be even more comfortable and productive [@introR].
+
+Creating a function in R is basically the assignment of a function object to a variable. That's why you will use the assignment operator `<-`. The basic form of a function is given by (slightly altered example and text from [@introRbookdown]):
+```{r, eval = FALSE}
+NameFunction <- function(Argument1, Argument2) {
+  Expression
+}
+```
+
+With this code, we are telling R that we want to create an object of type **function** and that we want to give it the name `NameFunction`. As input, it takes `Argument1` and `Argument2` and it then performs the inner part of the function which is denoted by `Expression`.
+
+As always, it's easier to comprehend this with an example.
+
+```{r}
+my_sqrt <- function(x) {
+  sqrt(x)
+}
+
+# Use the function
+my_sqrt(12)
+my_sqrt(16)
+
+sum_abs <- function(x, y) {
+  abs(x) + abs(y)
+}
+
+# Use the function
+sum_abs(-2, 3)
+```
+
+You can define default argument values in your own R functions as well. Here you see an example.
+```{r}
+my_sqrt <- function(x, print_info = TRUE) {
+  y <- sqrt(x)
+  if (print_info) {
+    print(paste("sqrt", x, "equals", y))
+  }
+  return(y)
+}
+
+# some calls of the function
+my_sqrt(16)
+my_sqrt(16, FALSE)
+my_sqrt(16, TRUE)
+```
+
+R works in a vectorized way and most of R's functions are vectorized. This means that the function will operate on all elements of a vector. Check this by calling the function `my_sqrt` on an input vector.
+```{r}
+v <- c(16, 25, 36)
+my_sqrt(v)
+```
+
+
+With this simple self-written function, we can also illustrated why functions can be called 'stupid' and why we should always include checks for the arguments of your self-written function. With regard to this issue, [@introRbookdown] gives an accurate description of what it means to be a programmer:  
+**Remember two things: the intelligence of code comes from the coder, not the computer and functions need exact instructions to work.**
+
+
+```{r}
+my_sqrt(-1)
+```
+We can fix this issue by adding some checks to our self-written function. It's up to you to decide on the checks that you add to your function and also what action will be taken. With the function `stop()` the code will be stopped and with the function `warning()` the function will proceed, but a warning will be given when using the function. 
+```{r, error = TRUE}
+my_sqrt <- function(x, print_info = TRUE) {
+  if(!is.complex(x)) {
+    if(x < 0) {
+      stop("Computer says no.")
+    }
+  }
+  y <- sqrt(x)
+  if (print_info) {
+    print(paste("sqrt", x, "equals", y))
+  }
+  return(y)
+}
+my_sqrt(-1)
+x <- 3i^2 # 
+my_sqrt(x)
+```
+The example also illustrates that you can specify the error/warning message yourself. Even if it's not the case for this example, make sure that these messages are informative. Both for the user and yourself. This way, the user will know what went wrong and why the function doesn't work. This will save you a lot of time in the future, when you will use code that you have written a long time ago.
+
+<!-- ![](images/OldCode1.jpg) ![](images/OldCode2.jpg) -->
+
+```{r, echo = FALSE, out.width = "50%", fig.show = 'hold', fig.align = 'default'}
+knitr::include_graphics(c("images/OldCode1.jpg", "images/OldCode2.jpg"))
+```
+
+
+
+### The '...' argument
+You probably already encountered the ellipsis argument `...` in the help files of some functions (see `?plot` for example). This argument allows you to pass the arguments of your self-written function to another function (within your function). 
+
+```{r}
+f <- function(x, y, ...) {
+  plot(x, y, ...)
+  lmFit <- lm(y ~ x)
+  muHat <- fitted(lmFit)
+  muHat <- muHat[order(x)]
+  x     <- x[order(x)]
+  lines(x, muHat, lwd = 2)
+}
+x <- rnorm(1e2)
+y <- 2 * x + rnorm(1e2, 0, 0.5)
+f(x, y, pch = 16, col = "red", xlab = "x-values", ylab = "y-values", main = "OLS plot")
+```
+
+### Function environments (advanced)
+This part is a bit more advanced, so don't worry if you don't fully understand everything in this section. Know that it suffices to have a general understanding of this chapter and that you can read it again once you are more familiar with writing functions. For an in-depth discussion on (function) environments, we refer the reader to the Advanced R book [@AdvancedR]. 
+
+Remember the sandbox analogy? Our global environment is our big sandbox and the objects that we create in this sandbox, stay in it. When we define a function and give it a name, we create a new object in our sandbox. Just like any other object, we can call it by using its name. Keeping the sandbox analogy, we can look at a function as a mini-sandbox within our larger sandbox, just like other objects. Functions, however, are fundamentally different from other objects. Not only because of their class, but also because of how they operate and their interaction with the different environments in R. 
+
+The inner part of the function (i.e. the part in the curly braces `{}`) has its own environment, called the execution environment. Further, functions have what they call a fresh start principle [@AdvancedR]. This means that, every time we run a function, a new execution environment is created in which the inner part is executed. Translating this to the sandbox analogy, we start with a clean mini-sandbox every time we run the function and after the function has been completed, we throw away everything that was computed and created in this mini-sandbox.
+```{r}
+f <- function() {
+  a <- 1
+  a <- a + 1
+  cat("\nenvironment:")
+  print(environment())
+  a
+}
+f()
+f()
+```
+In this example we see that a new (execution) environment is created every time the function is called. Due to this fresh start principle, R makes sure that results are not contaminated due to previous function calls and that we get the same result when we run the function with the same arguments.
+
+```{r, error = TRUE}
+rm(x, a)
+f <- function(x) {
+  x * a
+}
+f(2)
+a <- 3
+f(2)
+```
+
+
+---
+
+## The apply family
+
+Whenever you're using a for loop, you might want to revise your code and see whether you can use a member of the `apply` family instead. [Quote from DataCamp's `Intermediate R' course]
+
+These functions may be a bit confusing at first, but once you get the hang of them they will be your best friends. With this family of functions, we are able to avoid loops, to run our code faster (certainly when using the parallel versions) and the risk of having an error is considerably lower. As [@introRbookdown] accurately and honestly put it:
+ **If you can, use the apply version. There’s nothing worse than realizing there was a small, tiny, seemingly meaningless mistake in a loop which weeks, months or years down the line has propagated into a huge mess. We strongly recommend trying to use the apply functions whenever possible.**
+ 
+![](images/TaskFailedSuccesfully.jpg) 
+ 
+ 
+Just look at the following example which is a simplification of what might happen in reality. This all has to do with our (execution) environment. In the `for` loop this is our global environment and that's why the original `x` gets overwritten. Conversely, when using `sapply()` we have the fresh start principle. Every 'loop' within `sapply` starts with a 'clean' environment.
+```{r}
+x <- 3
+for(i in 1:3) {
+  x = x + i
+  print(x)
+}
+
+x <- 3
+sapply(1:3, function(i) {
+  x <- x + i
+  x
+})
+```
+ 
+The `sapply` function is a member of a broader group of functions, the apply family of functions:
+
+  + `apply`,
+  + `lapply`,
+  + `sapply`,
+  + `tapply`,
+  + `vapply`,
+  + `mapply`.
+
+Of all members, the `sapply` and `lapply` function are easiest to start with. The `sapply` and `lapply` function are nearly identical and are meant for one-dimensional inputs (i.e. a vector or a list). `sapply` will try to simplify the output as much as possible, while `lapply` will always return a list. Based on the example in the code block above, can you guess what the output of the following code will be?
+
+```{r, eval = FALSE}
+(a <- rnorm(3))
+lapply(a, function(x) floor(x))
+```
+To explain the mechanics behind `lapply` more in detail, let's use the following structure:
+
+```{r, eval = FALSE}
+lapply(X, FUN)
+```
+
+Here, `X` is the input which is either a vector or a list and each element of `X` is then passed to the function `FUN`. 
+
+```{r}
+Garfield <- function(x) {
+  if(x == "Monday")
+    "I hate Mondays!"
+  else
+    "I'm glad it's not Monday."
+}
+X <- weekdays(Sys.Date() + 0:6)
+lapply(X, FUN = Garfield)
+```
+In this example, `X` is a vector that contains all days of the week and each weekday is then passed to the function `Garfield` which tells you whether Garfield is happy or not. Further, the results are returned in a list-form. This is another advantage compared to a `for` loop, where we would have to explicitly create a list and save all results in this list. In addition, the fact that the input to the `lapply` function can also be a list, makes it even more interesting to use. The `lapply` and `sapply` function are incredibly powerful once you get the hang of it. Just take a look at the following example.
+
+```{r}
+p  <- 4
+n  <- 10
+X  <- cbind(1, replicate(p, rnorm(n)))
+B  <- runif(1 + p)
+Y  <- X %*% B + rnorm(n) / 10
+Df <- data.frame(Y, X[, -1])
+
+ModelFits <- lapply(1:p, function(x) {
+  Formula <- formula(paste0("Y ~ ", paste0("X", 1:x, collapse = " + ")))
+  lmFit   <- lm(Formula, data = Df)
+  return(lmFit)
+})
+lapply(ModelFits, coef)
+lapply(ModelFits, sigma)
+```
+
+If you look at the help file of the `lapply` function, you will notice that this also makes use of the ellipsis `...` argument and hence, we can pass arguments to the function `FUN`.
+
+```{r}
+lapply(ModelFits, predict, interval = "confidence")
+```
+
+If we would rather have the results returned as a vector, matrix or array, we can make use of the `sapply` function.
+```{r}
+sapply(ModelFits, sigma)
+```
+
+Another advantage of using `sapply` is that it will, by default, return a named object when the input `X` has a `names` attribute.
+```{r}
+names(ModelFits) <- paste0("Model", seq_along(ModelFits))
+attributes(ModelFits)
+sapply(ModelFits, sigma)
+```
+
+This default behavior of simplifying the output can be changed by setting the argument `simplify = FALSE`.
+```{r}
+sapply(ModelFits, sigma, simplify = F)
+```
+
+  
+Another very famous member of this family is the `apply` function and is meant for two- or higher-dimensional objects.
+
+* It must be applied on an array and is also applicable to a matrix and a data.frame.
+* It takes the following arguments:
+  + first argument: the array you are working with
+  + second argument: margin to apply the function over (1 for rows and 2
+  for columns)
+  + third argument: function you want to apply.
+  + fourth argument: ellipsis argument, used to pass arguments to the applied function
+
+Let's start by illustrating it with a very simple example.  
+
+```{r}
+my_matrix <- matrix(1:9, nrow = 3)
+# sum the rows
+apply(my_matrix, 1, sum)
+# sum the columns
+apply(my_matrix, 2, sum)
+# insert a missing observation in my_matrix
+my_matrix[2,1] <- NA
+apply(my_matrix, 1, sum)
+apply(my_matrix, 1, sum, na.rm = TRUE)
+```
+
+What `apply` does, is that is basically 'slices' the input object according to the margin specified and then passes each 'slice' to the user-specified function. That's why it's related to the `lapply` and `sapply` function. Do you know why we get the same result for `apply` and `sapply` in the following block of code?
+```{r}
+my_matrix <- as.data.frame(my_matrix)
+apply(my_matrix, 2, sum, na.rm = T)
+sapply(my_matrix, sum, na.rm = T)
+```
+That's right! Since a data.frame is a `list` type of object, we can either use `apply` or `lapply` on a data.frame when we want to use the columns as the input for `FUN`.
+
+Another useful member of this family is the `tapply` function, which you already encountered in Chapter \@ref(started-with-data). The `tapply` function is useful when we need to break up a vector into groups defined by some classifying factor, compute a function on the subsets, and return the results in a convenient form.
+```{r}
+wages <- c(5500, 3500, 6500, 7500)
+gender <- c("F", "F", "M", "M")
+region <- c("North", "South", "North", "South")
+salary <- data.frame(wages, gender, region)
+tapply(salary$wages, salary$gender, mean)
+tapply(salary$wages, list(salary$gender, salary$region), mean)
+```
+
+
+The remaining two members, `vapply` and `mapply`, are for more advanced users and hence, we will not discuss them in detail. For now, it suffices to know that `vapply` is similar to `sapply`, but that it has a pre-specified type of return value and that `mapply` is a multivariate version of `sapply`.
+
+### Taking lapply/sapply to the next level
+We saw that the input for `sapply`/`lapply` can also be a list. What if the list contained functions? Would this really work? In general, no matter how crazy your idea is for R, if you can translate it to code it will work. 
+
+```{r}
+Fns <- list(mean, sd, median, IQR)
+x   <- rpois(1e3, 5)
+lapply(Fns, function(f) f(x))
+```
+
+
+This example again shows how flexible and awesome R is!
+
+
+<!-- Add part on parallel programming -->
+
+---
+
+## Exercises
+
+```{block functions, type="learncheck", purl=FALSE}
+**_Learning check_**
+```
+
+1. Create a function that will return the sum of 2 integers.
+
+2. The function `var` in R calculates the unbiased variance estimator, given
+ a random sample of data. Write a function `variance` which returns the biased
+ or unbiased estimate of the variance, depending on the value of the argument 
+ `bias` which can be `TRUE` or `FALSE`. By default the function `variance` 
+ should produce the same result as `var`. 
+ Formulas: unbiased = $\frac{1}{n-1}\sum_i (x_i-\bar{x})^2$ and 
+ biased = $\frac{1}{n}\sum_i(x_i-\bar{x})^2$ where $\bar{x}=\frac{1}{n} \sum_i x_i$.
+ 
+3. Create a function that given a vector and an integer will return how many times the integer appears inside the vector.
+
+4. Create a function that given a vector will print by screen the mean and the standard deviation, it will optionally also print the median.
+
+5. Start by running the code `Avg <- ceiling(runif(5) * 10)`.
+  + Use `lapply` with the vector `Avg` and the function `rnorm` with `n = 1000` to create a list. Each element of `Avg` should be passed to the argument `mean` of the function `rnorm`.
+  + Compute the mean of each element in this list using either `lapply` or `sapply`.
+  + Compute the standard deviation as well.
+
+
+```{block, type="learncheck", purl=FALSE}
+```

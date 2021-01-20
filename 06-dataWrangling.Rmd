@@ -1,0 +1,180 @@
+# Data wrangling in R {#data-wrangling}
+
+For advanced, and fast, data handling with large R objects and lots of flexibility, two lines of work are available:
+
+* the RStudio line (with Hadley Wickham) offering the packages from the `tidyverse`: see [tidyverse](https://www.tidyverse.org/)
+* the `data.table` line developed by Matt Dowle, see e.g. [DataCamp's course on `data.table`](https://www.datacamp.com/courses/data-table-data-manipulation-r-tutorial).
+
+Both have a very specific syntax, with a demanding learning curve. 
+
+## Ideas from the `tidyverse`
+
+### A `tibble` instead of a `data.frame`
+
+Within the `tidyverse` tibbles are a modern take on data frames. They keep the features that have stood the test of time, and drop the features that used to be convenient but are now frustrating (i.e. converting character vectors to factors). (Quote from [tibble vignette](https://cran.r-project.org/web/packages/tibble/vignettes/tibble.html)) You can use `tibble` to create a new tibble and `as_tibble` transforms an object (e.g. a data frame) into a `tibble`.
+
+```{r}
+library(ggplot2)
+diamonds
+```
+
+### Pipes in R
+
+Read the story behind the pipe operator in R in this tutorial from DataCamp [pipes in R](https://www.datacamp.com/community/tutorials/pipe-r-tutorial). In R, the pipe operator is `%>%`. You can think of this operator as being similar to the `+` in a `ggplot2` statement, as introduced in Chapter \@ref(data-viz). It takes the output of one statement and makes it the input of the next statement. When describing it, you can think of it as a "THEN".
+
+### Filter observations using `filter`
+
+Here is a first example of using the pipe in R.
+```{r}
+library(ggplot2)
+library(dplyr)
+diamonds %>% filter(cut == "Ideal")
+```
+
+The code chunk above will translate to something like "you take the `diamonds` data, then you subset the data". 
+This is one of the most powerful things about the tidyverse. In fact, having a standardized chain of processing actions is called "a pipeline". 
+
+Here is another example where you now filter diamonds based on two characteristics.
+```{r}
+diamonds %>% filter(cut == "Ideal" & color == "E")
+diamonds %>% filter(cut == "Ideal" & color %in% c("E", "D"))
+```
+
+### Summarize variables using `summarize`
+
+The code chunk below will translate to something like "you take the `diamonds` data, then you subset the data and then you calculate mean and standard deviation of these data". 
+```{r}
+diamonds %>% filter(cut == "Ideal") %>% summarize(mean = mean(price), std_dev = sd(price))
+```
+
+### Summarize based on groupings of another variable
+
+So, here is what you'd like to do.
+```{r}
+# base R way with aggregate
+aggregate(price ~ cut, diamonds, mean)
+```
+How can you do this with the pipe?
+```{r}
+diamonds %>% group_by(cut) %>% summarize(mean = mean(price))
+```
+Now you want to group by multiple variables.
+```{r}
+diamonds %>% group_by(cut, color) %>% summarize(price = mean(price))
+```
+
+Now you want to calculate multiple metrics.
+```{r}
+diamonds %>% group_by(cut) %>% summarize(price = mean(price), carat = mean(carat))
+```
+And finally, multiple metrics and multiple grouping variables.
+```{r}
+diamonds %>% group_by(cut, color) %>% summarize(price = mean(price), carat = mean(carat))
+```
+
+### Joining tibbles
+
+Now you want to add the mean price and mean carat per `cut` to the original tibble. You use the variable `cut` as the key to identify observations. 
+```{r}
+d <- diamonds %>% group_by(cut) %>% summarize(price = mean(price), carat = mean(carat))
+new_diamonds <- diamonds %>% inner_join(d, by = "cut")
+View(diamonds)
+View(new_diamonds)
+```
+
+---
+
+## Data science the `data.table` way
+
+### Speed junkies love `data.table`
+
+`data.table` is a package designed for speed junkies. "The R `data.table` package is rapidly making its name as the number one choice for handling large datasets in R." It extends and exchanges the functionality of the basic `data.frame` in R. The syntax is different and you'll have to get used to it. A `data.table` cheat sheet is available [here](https://s3.amazonaws.com/assets.datacamp.com/img/blog/data+table+cheat+sheet.pdf).
+
+### What is a `data.table`?
+
+Here you see some basic illustrations with the `diamonds` data.
+
+```{r}
+library(data.table)
+library(ggplot2)
+str(diamonds)
+diamonds_DT <- data.table(diamonds)
+diamonds_DT # notice intelligent printing of this DT
+summary(diamonds_DT$cut)
+```
+
+### Identify keys
+Instead of using `subset` from the `base` R, you will use the `setkey` to extract the observations you want to have.
+```{r}
+# key is used to index the data.table and will provide the extra speed
+setkey(diamonds_DT, cut)
+tables()
+diamonds_DT[J("Ideal"), ]
+# more than one column can be set as key
+setkey(diamonds_DT, cut, color)
+tables()
+# access rows according to both keys, use function 'J'
+diamonds_DT[J("Ideal", "E"), ]
+diamonds_DT[J("Ideal", c("E", "D")), ]
+# what would be the alternative with base R?
+subset(diamonds, diamonds$cut == "Ideal" && diamonds$color == c("E", "D"))
+```
+
+
+### Alternative and faster ways to `aggregate`
+
+Instead of using `aggregate` from the `base` R, you will identify the `by` variable(s).
+
+```{r}
+# base R way with aggregate
+aggregate(price ~ cut, diamonds, mean)
+system.time(aggregate(price ~ cut, diamonds, mean))
+# aggregation with data.table
+# will go faster thanks to indexing
+diamonds_DT[ , mean(price), by=cut]
+system.time(diamonds_DT[ , mean(price), by=cut])
+# give variable names in the create date.table
+diamonds_DT[ , list(price = mean(price)), by=cut]
+# aggregate on multiple columns
+diamonds_DT[ , mean(price), by=list(cut,color)]
+# aggregate multiple arguments
+diamonds_DT[ , list(price = mean(price), carat = mean(carat)), by = cut]
+diamonds_DT[ , list(price = mean(price), carat = mean(carat), caratSum = sum(carat)), by=cut]
+# multiple metrics and multiple grouping variables
+diamonds_DT[ , list(price = mean(price), carat = mean(carat)), by = list(cut, color)]
+```
+
+
+### Joining `data.tables`
+
+How to join `data.tables`?
+```{r}
+# join two data.tables
+d <- diamonds_DT[ , list(price = mean(price), carat = mean(carat)), by = cut]
+d
+setkey(diamonds_DT, cut)
+dmerge <- diamonds_DT[d]
+dmerge
+```
+
+---
+
+## Exercises
+
+```{block data wrangling, type="learncheck", purl=FALSE}
+**_Learning check_**
+```
+
+1. (An exercise taken from [@AER2008]) "PARADE" is the Sunday newspaper magazine supplementing the Sunday or weekend edition of some 500 daily newspapers in the United States of America. An important
+yearly feature is an article providing information on some 120150 "randomly" selected
+US citizens, indicating their profession, hometown and state, and their yearly earnings.
+The Parade2005 (in library AER) data contain the 2005 version, amended by a variable
+indicating celebrity status (motivated by substantial oversampling of celebrities in these data). 
+For the Parade2005 data and by using `%>%` answer the following questions.
+ + Load the data `Parade2005` from the `AER` package, use `data("Parade2005")` to make the data accessible.
+ + Determine the mean earnings in California.
+ + Determine the number of individuals residing in Idaho.
+ + Determine the mean and the median earnings of celebrities. 
+
+```{block, type="learncheck", purl=FALSE}
+```

@@ -1,0 +1,151 @@
+# Optimization in R {#optimization}
+
+Actuaries often write functions (e.g. a likelihood) that have to be optimized. Here you'll get to know some R functionalities to do optimization.
+
+## Find the root of a function
+
+Consider the function $f: x \mapsto x^2-3^{-x}$. What is the root of this function over the interval $[0,1]$?
+
+```{r}
+# in one line of code
+uniroot(function(x) x^2-3^(-x), lower=0, upper=1)
+? uniroot
+# in more lines of code
+f <- function(x){
+	x^2-3^(-x)
+}
+# calculate root
+opt <- uniroot(f, lower=0, upper=1)
+# check arguments
+names(opt)
+# evaluate 'f(.)' in the root
+f(opt$root)
+# visualize the function
+range <- seq(-2, 2, by=0.2)
+plot(range, f(range), type="l")
+points(opt$root, f(opt$root), pch=20)
+segments(opt$root, -7, opt$root, 0, lty=2)
+segments(-3, 0, opt$root, 0, lty=2)
+```
+
+---
+
+## Find the maximum of a function
+
+You look for the maximum of the beta density with a given set of parameters.
+```{r}
+# visualize the density
+shape1 <- 3
+shape2 <- 2
+x <- seq(from=0, to=1, by=0.01)
+curve(dbeta(x,shape1,shape2), xlim=range(x))
+
+opt_beta <- optimize(dbeta, interval = c(0, 1), maximum = TRUE, shape1, shape2)
+points(opt_beta$maximum, opt_beta$objective, pch=20, cex=1.5)
+segments(opt_beta$maximum, 0, opt_beta$maximum, opt_beta$objective, lty=2)
+```
+
+---
+
+## Perform Maximum Likelihood Estimation (MLE)
+Once we know the expression for a probability distribution, we can estimate its parameters by maximizing the (log-)likelihood. Take logistic regression, for example. Here, the likelihood function is given by
+$$L(\boldsymbol{\beta}) = \prod_{i=1}^{\text{n}} p_i^{y_i} (1 - p_i)^{(1 - y_i)}$$
+where 
+$$p_i = \frac{e^{\boldsymbol{x}_i^{'} \boldsymbol{\beta}}}{1 + e^{\boldsymbol{x}_i^{'} \boldsymbol{\beta}}}$$ 
+and where $\boldsymbol{x}_i$ is the covariate vector for observation $i$ and $\boldsymbol{\beta}$ the parameter vector. The log-likelihood is given by
+$$\ell(\boldsymbol{\beta}) = \sum_{i=1}^{\text{n}} y_i \log(p_i) +  (1 - y_i) \log(1 - p_i).$$
+
+Hence, with a dataset, we optimize this function to get the maximum likelihood estimate $\hat{\boldsymbol{\beta}}$. To do this in R, let's use the `birthwt` dataset from the package `MASS`.
+
+```{r}
+library(MASS)
+data("birthwt")
+?birthwt
+Df <- birthwt
+head(birthwt)
+```
+
+We want to model the probability on low birthweight as a function of the variables `age`, `lwt`, `race` and `smoke` and create an object `Form` containing this formula to make life easy.
+```{r}
+Form <- formula(low ~ age + lwt + race + smoke)
+```
+
+When fitting a logistic regression model, we get the following results.
+```{r}
+(glmFit <- glm(Form, data = Df, family = binomial))
+```
+We will use this to check if we did everything correctly when using our self-written code. We first start by writing a function for the (negative) log-likelihood.
+```{r}
+logLikLR <- function(B, X, y) {
+  Eta  <- X %*% B
+  pHat <- binomial()$linkinv(X %*% B)
+  -sum(y * log(pHat) + (1 - y) * log(1 - pHat))
+}
+```
+
+Note that we use the negative log-likelihood here. We do this because the functions that we will use minimize our function instead of maximizing it.
+
+When programming, it's always good to perform some sanity checks. A double or tripple check will assure you that you did not do anything stupid (such as having written a `+` instead of a `-`).
+
+![Retrieved from https://lefunny.net/funny-sanity-saying/](images/SanityCheck.jpg)
+
+
+```{r}
+logLik(glmFit)
+-logLikLR(coef(glmFit), model.matrix(glmFit), Df$low)
+```
+OK, so that checks out. Noice, let's go the next step. Now we need a function that minimizes our (multivariate) function for us. For this, we can use the function `optim`. When using `optim`, we also need some initial values for our parameters. The log-likelihood for our logistic regression model isn't overly complex and hence, we can just use 0's as starting values.
+
+```{r}
+Bstart  <- rep(0, length(coef(glmFit)))
+X       <- model.matrix(Form, data = Df)
+y       <- Df$low
+LRoptim <- optim(Bstart, logLikLR, X = X, y = y)
+cbind(LRoptim$par, glmFit$coefficients)
+```
+OK, not bad, but I think we can do better. So let's use some other optimizers.
+```{r}
+LRoptim <- optim(Bstart, logLikLR, X = X, y = y, method = "BFGS")
+cbind(LRoptim$par, glmFit$coefficients)
+```
+Euhm, yes, looking good for all estimated coefficients except the intercept. What do we do now? One way to further improve it, is by adding a function that returns the gradient vector. So, let's do this. Remember that we are working with the negative log-likelihood and that we therefore also have to adjust our function to compute the gradient!
+
+```{r}
+Gradient <- function(B, X, y) {
+  pHat <- binomial()$linkinv(X %*% B)
+  -crossprod(X, y - pHat)
+}
+LRoptim <- optim(Bstart, logLikLR, X = X, y = y, method = "BFGS", gr = Gradient)
+cbind(LRoptim$par, glmFit$coefficients)
+```
+Phew, that looks a lot better! As an alternative to `optim`, we can use `nlm`.
+```{r}
+LRnlm <- nlm(logLikLR, Bstart, X = X, y = y)
+cbind(LRnlm$estimate, glmFit$coefficients)
+```
+We see that the results of `nlm` are even more accurate without having to adjust the default settings. As with `optim`, we can also add a function to compute the gradient, but here we have to add it as an attribute in the original function.
+```{r}
+logLikLR <- function(B, X, y) {
+  Eta  <- X %*% B
+  pHat <- binomial()$linkinv(X %*% B)
+  LL   <- -sum(y * log(pHat) + (1 - y) * log(1 - pHat))
+  attr(LL, "gradient") <- -crossprod(X, y - pHat)
+  LL
+}
+LRnlm <- nlm(logLikLR, Bstart, X = X, y = y)
+cbind(LRnlm$estimate, glmFit$coefficients)
+```
+We can even add the Hessian matrix (and again, remember that we are working with the negative log-likelihood)!
+```{r}
+logLikLR <- function(B, X, y) {
+  Eta  <- X %*% B
+  pHat <- as.vector(binomial()$linkinv(X %*% B))
+  W    <- diag(pHat * (1 - pHat), ncol = length(pHat))
+  LL   <- -sum(y * log(pHat) + (1 - y) * log(1 - pHat))
+  attr(LL, "gradient") <- -crossprod(X, y - pHat)
+  attr(LL, "hessian") <- t(X) %*% W %*% X
+  LL
+}
+LRnlm <- nlm(logLikLR, Bstart, X = X, y = y, gradtol = 1e-8)
+cbind(LRnlm$estimate, glmFit$coefficients)
+```

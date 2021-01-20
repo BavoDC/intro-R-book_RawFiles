@@ -1,0 +1,93 @@
+---
+title: 'Data science in insurance: an R intro'
+author: "Chester Ismay and Albert Y. Kim and Katrien Antonio and Bavo DC Campo"
+date: '`r Sys.Date()`'
+site: bookdown::bookdown_site
+bibliography:
+- bib/books.bib
+- bib/packages.bib
+- bib/articles.bib
+output:
+  bookdown::gitbook:
+    css: style.css
+    includes:
+      in_header: header.html
+  bookdown::pdf_book:
+    keep_tex: yes
+description: An open-source and fully-reproducible electronic textbook introducing
+  the use of R to actuarial students and professionals.
+documentclass: book
+link-citations: no
+biblio-style: apalike
+---
+
+
+```{r, include=FALSE}
+
+# require(bookdown)
+# render_book('index.Rmd', 'bookdown::gitbook')
+
+# Set output options
+options(width = 80, digits = 4, bookdown.clean_book = TRUE)
+knitr::opts_chunk$set(
+  tidy = FALSE,
+  #out.width='\\textwidth',
+  fig.width = 6, fig.height = 4,
+  fig.align = "center",
+  comment = NA
+)
+
+# Packages needed for following code in book
+needed_pkgs <- c(
+  # Data packages:
+  "ISLR",
+  # Used packages:
+  "ggplot2", "tibble", "tidyr", "dplyr", "readr", "dygraphs", "rmarkdown",
+  "knitr", "mosaic", "broom", "remotes", "forcats", "plotly", "moderndive",
+  "janitor", "infer", "sas7bdat", "readxl", "AER", "corrplot", "car", "data.table",
+  # Internally used packages:
+  "devtools", "webshot", "tufte", "mvtnorm", "stringr", "gridExtra"
+)
+new_pkgs <- needed_pkgs[!(needed_pkgs %in% installed.packages())]
+if(length(new_pkgs)) {
+  install.packages(new_pkgs, repos = "http://cran.rstudio.com")
+}
+
+
+# Automatically create a bib database for R packages
+knitr::write_bib(
+  c(.packages(), "bookdown", "knitr", "rmarkdown", "nycflights13", "devtools",
+    "ggplot2", "webshot", "dygraphs", "tufte", "okcupiddata", "mosaic", "dplyr",
+    "ggplot2movies", "fivethirtyeight", "tibble", "readr", "tidyr"),
+  "bib/packages.bib"
+)
+
+# Add all simulation results here
+dir.create("rds")
+
+dir.create("docs/scripts")
+
+
+
+# Add all knitr::purl()'ed chapter R scripts here
+
+#bookdown::render_book('index.Rmd', 'bookdown::gitbook')
+
+# purl R scripts. For some reason this needs to be run manually:
+#if(FALSE){
+#  # Note order matters here:
+#  chapter_titles <- c("objects-data-types", "started-with-data")
+#  chapter_numbers <- stringr::str_pad(2:(length(chapter_titles) + 1), 2, "left", pad = "0")
+#  for(i in 1:length(chapter_numbers)){
+#    Rmd_file <- stringr::str_c(chapter_numbers[i], "-", chapter_titles[i], ".Rmd")
+#    R_file <- stringr::str_c("docs/scripts/", chapter_numbers[i], "-", chapter_titles[i], ".R")
+#    knitr::purl(Rmd_file, R_file)
+#  }
+#  file.exists("my_index_Arcturus.Rmd")
+#  knitr::purl("my_index_Arcturus.Rmd")
+#}
+
+```
+
+
+

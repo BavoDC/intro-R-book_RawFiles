@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>9 Optimization in R | Data science in insurance: an R intro</title>
+  <meta name="description" content="An open-source and fully-reproducible electronic textbook introducing the use of R to actuarial students and professionals." />
+  <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="9 Optimization in R | Data science in insurance: an R intro" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="An open-source and fully-reproducible electronic textbook introducing the use of R to actuarial students and professionals." />
+  
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="9 Optimization in R | Data science in insurance: an R intro" />
+  
+  <meta name="twitter:description" content="An open-source and fully-reproducible electronic textbook introducing the use of R to actuarial students and professionals." />
+  
+
+<meta name="author" content="Chester Ismay and Albert Y. Kim and Katrien Antonio and Bavo DC Campo" />
+
+
+<meta name="date" content="2021-01-20" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="functions.html"/>
+<link rel="next" href="lms.html"/>
+<script src="libs/jquery-2.2.3/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+
+<style type="text/css">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a><ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#subsec:learning-goals"><i class="fa fa-check"></i><b>1.1</b> Learning outcomes</a></li>
+<li class="chapter" data-level="1.2" data-path="index.html"><a href="index.html#subsec:pipeline"><i class="fa fa-check"></i><b>1.2</b> Data/science pipeline</a></li>
+<li class="chapter" data-level="1.3" data-path="index.html"><a href="index.html#inspirations-and-references"><i class="fa fa-check"></i><b>1.3</b> Inspirations and references</a></li>
+<li class="chapter" data-level="1.4" data-path="index.html"><a href="index.html#sec:about-book"><i class="fa fa-check"></i><b>1.4</b> About this book</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="getting-started.html"><a href="getting-started.html"><i class="fa fa-check"></i><b>2</b> Getting started in R</a><ul>
+<li class="chapter" data-level="2.1" data-path="getting-started.html"><a href="getting-started.html#some-history"><i class="fa fa-check"></i><b>2.1</b> Some history</a></li>
+<li class="chapter" data-level="2.2" data-path="getting-started.html"><a href="getting-started.html#what-are-r-and-rstudio"><i class="fa fa-check"></i><b>2.2</b> What are R and RStudio?</a><ul>
+<li class="chapter" data-level="2.2.1" data-path="getting-started.html"><a href="getting-started.html#installing-r-and-rstudio"><i class="fa fa-check"></i><b>2.2.1</b> Installing R and RStudio</a></li>
+<li class="chapter" data-level="2.2.2" data-path="getting-started.html"><a href="getting-started.html#using-r-via-rstudio"><i class="fa fa-check"></i><b>2.2.2</b> Using R via RStudio</a></li>
+</ul></li>
+<li class="chapter" data-level="2.3" data-path="getting-started.html"><a href="getting-started.html#code"><i class="fa fa-check"></i><b>2.3</b> How do I code in R?</a><ul>
+<li class="chapter" data-level="2.3.1" data-path="getting-started.html"><a href="getting-started.html#tips-on-learning-to-code"><i class="fa fa-check"></i><b>2.3.1</b> Tips on learning to code</a></li>
+</ul></li>
+<li class="chapter" data-level="2.4" data-path="getting-started.html"><a href="getting-started.html#packages"><i class="fa fa-check"></i><b>2.4</b> What are R packages?</a><ul>
+<li class="chapter" data-level="2.4.1" data-path="getting-started.html"><a href="getting-started.html#package-installation"><i class="fa fa-check"></i><b>2.4.1</b> Package installation</a></li>
+<li class="chapter" data-level="2.4.2" data-path="getting-started.html"><a href="getting-started.html#package-loading"><i class="fa fa-check"></i><b>2.4.2</b> Package loading</a></li>
+<li class="chapter" data-level="2.4.3" data-path="getting-started.html"><a href="getting-started.html#packages-on-cran"><i class="fa fa-check"></i><b>2.4.3</b> Packages on CRAN</a></li>
+</ul></li>
+<li class="chapter" data-level="2.5" data-path="getting-started.html"><a href="getting-started.html#conclusion"><i class="fa fa-check"></i><b>2.5</b> Conclusion</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="objects-data-types.html"><a href="objects-data-types.html"><i class="fa fa-check"></i><b>3</b> Objects and data types in R</a><ul>
+<li class="chapter" data-level="3.1" data-path="objects-data-types.html"><a href="objects-data-types.html#how-it-works"><i class="fa fa-check"></i><b>3.1</b> How it works</a></li>
+<li class="chapter" data-level="3.2" data-path="objects-data-types.html"><a href="objects-data-types.html#subsec:Objects"><i class="fa fa-check"></i><b>3.2</b> Objects</a></li>
+<li class="chapter" data-level="3.3" data-path="objects-data-types.html"><a href="objects-data-types.html#everything-is-an-object"><i class="fa fa-check"></i><b>3.3</b> Everything is an object</a></li>
+<li class="chapter" data-level="3.4" data-path="objects-data-types.html"><a href="objects-data-types.html#basic-data-types"><i class="fa fa-check"></i><b>3.4</b> Basic data types</a></li>
+<li class="chapter" data-level="3.5" data-path="objects-data-types.html"><a href="objects-data-types.html#vectors"><i class="fa fa-check"></i><b>3.5</b> Vectors</a><ul>
+<li class="chapter" data-level="3.5.1" data-path="objects-data-types.html"><a href="objects-data-types.html#vector-indexing"><i class="fa fa-check"></i><b>3.5.1</b> Vector indexing</a></li>
+<li class="chapter" data-level="3.5.2" data-path="objects-data-types.html"><a href="objects-data-types.html#character-and-logical-vectors"><i class="fa fa-check"></i><b>3.5.2</b> Character and logical vectors</a></li>
+<li class="chapter" data-level="3.5.3" data-path="objects-data-types.html"><a href="objects-data-types.html#missing-values"><i class="fa fa-check"></i><b>3.5.3</b> Missing values</a></li>
+<li class="chapter" data-level="3.5.4" data-path="objects-data-types.html"><a href="objects-data-types.html#logical-operators"><i class="fa fa-check"></i><b>3.5.4</b> Logical operators</a></li>
+<li class="chapter" data-level="3.5.5" data-path="objects-data-types.html"><a href="objects-data-types.html#factors"><i class="fa fa-check"></i><b>3.5.5</b> Factors</a></li>
+</ul></li>
+<li class="chapter" data-level="3.6" data-path="objects-data-types.html"><a href="objects-data-types.html#matrices"><i class="fa fa-check"></i><b>3.6</b> Matrices</a><ul>
+<li class="chapter" data-level="3.6.1" data-path="objects-data-types.html"><a href="objects-data-types.html#matrix-operations-and-indexing"><i class="fa fa-check"></i><b>3.6.1</b> Matrix operations and indexing</a></li>
+</ul></li>
+<li class="chapter" data-level="3.7" data-path="objects-data-types.html"><a href="objects-data-types.html#lists"><i class="fa fa-check"></i><b>3.7</b> Lists</a></li>
+<li class="chapter" data-level="3.8" data-path="objects-data-types.html"><a href="objects-data-types.html#data-frames"><i class="fa fa-check"></i><b>3.8</b> Data frames</a></li>
+<li class="chapter" data-level="3.9" data-path="objects-data-types.html"><a href="objects-data-types.html#exercises"><i class="fa fa-check"></i><b>3.9</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="started-with-data.html"><a href="started-with-data.html"><i class="fa fa-check"></i><b>4</b> Getting started with data in R</a><ul>
+<li class="chapter" data-level="4.1" data-path="started-with-data.html"><a href="started-with-data.html#importing-data"><i class="fa fa-check"></i><b>4.1</b> Importing data</a><ul>
+<li class="chapter" data-level="4.1.1" data-path="started-with-data.html"><a href="started-with-data.html#importing-a-.csv-file-with-read.csv"><i class="fa fa-check"></i><b>4.1.1</b> Importing a .csv file with <code>read.csv()</code></a></li>
+<li class="chapter" data-level="4.1.2" data-path="started-with-data.html"><a href="started-with-data.html#importing-a-.txt-file-the-danish-fire-insurance-data"><i class="fa fa-check"></i><b>4.1.2</b> Importing a .txt file: the Danish fire insurance data</a></li>
+<li class="chapter" data-level="4.1.3" data-path="started-with-data.html"><a href="started-with-data.html#importing-a-.sas7bdat-file"><i class="fa fa-check"></i><b>4.1.3</b> Importing a .sas7bdat file</a></li>
+<li class="chapter" data-level="4.1.4" data-path="started-with-data.html"><a href="started-with-data.html#importing-an-.xlsx-file"><i class="fa fa-check"></i><b>4.1.4</b> Importing an .xlsx file</a></li>
+</ul></li>
+<li class="chapter" data-level="4.2" data-path="started-with-data.html"><a href="started-with-data.html#basic-data-handling-steps"><i class="fa fa-check"></i><b>4.2</b> Basic data handling steps</a><ul>
+<li class="chapter" data-level="4.2.1" data-path="started-with-data.html"><a href="started-with-data.html#subsetting"><i class="fa fa-check"></i><b>4.2.1</b> Subsetting</a></li>
+<li class="chapter" data-level="4.2.2" data-path="started-with-data.html"><a href="started-with-data.html#find-minimum-or-maximum"><i class="fa fa-check"></i><b>4.2.2</b> Find minimum or maximum</a></li>
+<li class="chapter" data-level="4.2.3" data-path="started-with-data.html"><a href="started-with-data.html#sorting"><i class="fa fa-check"></i><b>4.2.3</b> Sorting</a></li>
+<li class="chapter" data-level="4.2.4" data-path="started-with-data.html"><a href="started-with-data.html#merging"><i class="fa fa-check"></i><b>4.2.4</b> Merging</a></li>
+<li class="chapter" data-level="4.2.5" data-path="started-with-data.html"><a href="started-with-data.html#aggregate"><i class="fa fa-check"></i><b>4.2.5</b> Aggregate</a></li>
+</ul></li>
+<li class="chapter" data-level="4.3" data-path="started-with-data.html"><a href="started-with-data.html#exploratory-data-analysis-eda"><i class="fa fa-check"></i><b>4.3</b> Exploratory Data Analysis (EDA)</a><ul>
+<li class="chapter" data-level="4.3.1" data-path="started-with-data.html"><a href="started-with-data.html#exploring-a-numerical-variable"><i class="fa fa-check"></i><b>4.3.1</b> Exploring a numerical variable</a></li>
+<li class="chapter" data-level="4.3.2" data-path="started-with-data.html"><a href="started-with-data.html#exploring-a-categorical-or-factor-variable"><i class="fa fa-check"></i><b>4.3.2</b> Exploring a categorical (or: factor) variable</a></li>
+<li class="chapter" data-level="4.3.3" data-path="started-with-data.html"><a href="started-with-data.html#exploring-two-categorical-or-factor-variables"><i class="fa fa-check"></i><b>4.3.3</b> Exploring two categorical (or: factor) variables</a></li>
+<li class="chapter" data-level="4.3.4" data-path="started-with-data.html"><a href="started-with-data.html#exploring-one-numerical-and-one-categorical-variable"><i class="fa fa-check"></i><b>4.3.4</b> Exploring one numerical and one categorical variable</a></li>
+</ul></li>
+<li class="chapter" data-level="4.4" data-path="started-with-data.html"><a href="started-with-data.html#exercises-1"><i class="fa fa-check"></i><b>4.4</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="5" data-path="data-viz.html"><a href="data-viz.html"><i class="fa fa-check"></i><b>5</b> Visualizing data in R</a><ul>
+<li class="chapter" data-level="5.1" data-path="data-viz.html"><a href="data-viz.html#basic-plot-instructions"><i class="fa fa-check"></i><b>5.1</b> Basic plot instructions</a><ul>
+<li class="chapter" data-level="5.1.1" data-path="data-viz.html"><a href="data-viz.html#scatterplot"><i class="fa fa-check"></i><b>5.1.1</b> Scatterplot</a></li>
+<li class="chapter" data-level="5.1.2" data-path="data-viz.html"><a href="data-viz.html#graphical-parameters"><i class="fa fa-check"></i><b>5.1.2</b> Graphical parameters</a></li>
+<li class="chapter" data-level="5.1.3" data-path="data-viz.html"><a href="data-viz.html#exporting-the-scatterplot"><i class="fa fa-check"></i><b>5.1.3</b> Exporting the scatterplot</a></li>
+<li class="chapter" data-level="5.1.4" data-path="data-viz.html"><a href="data-viz.html#the-curve-function"><i class="fa fa-check"></i><b>5.1.4</b> The <code>curve()</code> function</a></li>
+</ul></li>
+<li class="chapter" data-level="5.2" data-path="data-viz.html"><a href="data-viz.html#more-fancy-plots"><i class="fa fa-check"></i><b>5.2</b> More fancy plots</a><ul>
+<li class="chapter" data-level="5.2.1" data-path="data-viz.html"><a href="data-viz.html#creating-graphics-with-ggplot2"><i class="fa fa-check"></i><b>5.2.1</b> Creating graphics with <code>ggplot2</code></a></li>
+<li class="chapter" data-level="5.2.2" data-path="data-viz.html"><a href="data-viz.html#fancy-correlation-plots"><i class="fa fa-check"></i><b>5.2.2</b> Fancy correlation plots</a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="data-viz.html"><a href="data-viz.html#exercises-2"><i class="fa fa-check"></i><b>5.3</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="data-wrangling.html"><a href="data-wrangling.html"><i class="fa fa-check"></i><b>6</b> Data wrangling in R</a><ul>
+<li class="chapter" data-level="6.1" data-path="data-wrangling.html"><a href="data-wrangling.html#ideas-from-the-tidyverse"><i class="fa fa-check"></i><b>6.1</b> Ideas from the <code>tidyverse</code></a><ul>
+<li class="chapter" data-level="6.1.1" data-path="data-wrangling.html"><a href="data-wrangling.html#a-tibble-instead-of-a-data.frame"><i class="fa fa-check"></i><b>6.1.1</b> A <code>tibble</code> instead of a <code>data.frame</code></a></li>
+<li class="chapter" data-level="6.1.2" data-path="data-wrangling.html"><a href="data-wrangling.html#pipes-in-r"><i class="fa fa-check"></i><b>6.1.2</b> Pipes in R</a></li>
+<li class="chapter" data-level="6.1.3" data-path="data-wrangling.html"><a href="data-wrangling.html#filter-observations-using-filter"><i class="fa fa-check"></i><b>6.1.3</b> Filter observations using <code>filter</code></a></li>
+<li class="chapter" data-level="6.1.4" data-path="data-wrangling.html"><a href="data-wrangling.html#summarize-variables-using-summarize"><i class="fa fa-check"></i><b>6.1.4</b> Summarize variables using <code>summarize</code></a></li>
+<li class="chapter" data-level="6.1.5" data-path="data-wrangling.html"><a href="data-wrangling.html#summarize-based-on-groupings-of-another-variable"><i class="fa fa-check"></i><b>6.1.5</b> Summarize based on groupings of another variable</a></li>
+<li class="chapter" data-level="6.1.6" data-path="data-wrangling.html"><a href="data-wrangling.html#joining-tibbles"><i class="fa fa-check"></i><b>6.1.6</b> Joining tibbles</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="data-wrangling.html"><a href="data-wrangling.html#data-science-the-data.table-way"><i class="fa fa-check"></i><b>6.2</b> Data science the <code>data.table</code> way</a><ul>
+<li class="chapter" data-level="6.2.1" data-path="data-wrangling.html"><a href="data-wrangling.html#speed-junkies-love-data.table"><i class="fa fa-check"></i><b>6.2.1</b> Speed junkies love <code>data.table</code></a></li>
+<li class="chapter" data-level="6.2.2" data-path="data-wrangling.html"><a href="data-wrangling.html#what-is-a-data.table"><i class="fa fa-check"></i><b>6.2.2</b> What is a <code>data.table</code>?</a></li>
+<li class="chapter" data-level="6.2.3" data-path="data-wrangling.html"><a href="data-wrangling.html#identify-keys"><i class="fa fa-check"></i><b>6.2.3</b> Identify keys</a></li>
+<li class="chapter" data-level="6.2.4" data-path="data-wrangling.html"><a href="data-wrangling.html#alternative-and-faster-ways-to-aggregate"><i class="fa fa-check"></i><b>6.2.4</b> Alternative and faster ways to <code>aggregate</code></a></li>
+<li class="chapter" data-level="6.2.5" data-path="data-wrangling.html"><a href="data-wrangling.html#joining-data.tables"><i class="fa fa-check"></i><b>6.2.5</b> Joining <code>data.tables</code></a></li>
+</ul></li>
+<li class="chapter" data-level="6.3" data-path="data-wrangling.html"><a href="data-wrangling.html#exercises-3"><i class="fa fa-check"></i><b>6.3</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="probs.html"><a href="probs.html"><i class="fa fa-check"></i><b>7</b> Working with probability distributions in R</a><ul>
+<li class="chapter" data-level="7.1" data-path="probs.html"><a href="probs.html#discrete-distributions"><i class="fa fa-check"></i><b>7.1</b> Discrete distributions</a><ul>
+<li class="chapter" data-level="7.1.1" data-path="probs.html"><a href="probs.html#the-binomial-distribution"><i class="fa fa-check"></i><b>7.1.1</b> The binomial distribution</a></li>
+<li class="chapter" data-level="7.1.2" data-path="probs.html"><a href="probs.html#the-poisson-distribution"><i class="fa fa-check"></i><b>7.1.2</b> The Poisson distribution</a></li>
+</ul></li>
+<li class="chapter" data-level="7.2" data-path="probs.html"><a href="probs.html#continuous-distributions"><i class="fa fa-check"></i><b>7.2</b> Continuous distributions</a><ul>
+<li class="chapter" data-level="7.2.1" data-path="probs.html"><a href="probs.html#the-normal-distribution"><i class="fa fa-check"></i><b>7.2.1</b> The normal distribution</a></li>
+<li class="chapter" data-level="7.2.2" data-path="probs.html"><a href="probs.html#the-gamma-distribution"><i class="fa fa-check"></i><b>7.2.2</b> The gamma distribution</a></li>
+</ul></li>
+<li class="chapter" data-level="7.3" data-path="probs.html"><a href="probs.html#exercises-4"><i class="fa fa-check"></i><b>7.3</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="functions.html"><a href="functions.html"><i class="fa fa-check"></i><b>8</b> Writing functions in R</a><ul>
+<li class="chapter" data-level="8.1" data-path="functions.html"><a href="functions.html#conditionals-and-control-flow"><i class="fa fa-check"></i><b>8.1</b> Conditionals and control flow</a></li>
+<li class="chapter" data-level="8.2" data-path="functions.html"><a href="functions.html#logical-operators-1"><i class="fa fa-check"></i><b>8.2</b> Logical operators</a></li>
+<li class="chapter" data-level="8.3" data-path="functions.html"><a href="functions.html#conditional-statements"><i class="fa fa-check"></i><b>8.3</b> Conditional statements</a></li>
+<li class="chapter" data-level="8.4" data-path="functions.html"><a href="functions.html#loops"><i class="fa fa-check"></i><b>8.4</b> Loops</a><ul>
+<li class="chapter" data-level="8.4.1" data-path="functions.html"><a href="functions.html#the-for-loop"><i class="fa fa-check"></i><b>8.4.1</b> The for loop</a></li>
+<li class="chapter" data-level="8.4.2" data-path="functions.html"><a href="functions.html#the-while-loop"><i class="fa fa-check"></i><b>8.4.2</b> The while loop</a></li>
+</ul></li>
+<li class="chapter" data-level="8.5" data-path="functions.html"><a href="functions.html#functions-in-r"><i class="fa fa-check"></i><b>8.5</b> Functions in R</a><ul>
+<li class="chapter" data-level="8.5.1" data-path="functions.html"><a href="functions.html#using-a-function"><i class="fa fa-check"></i><b>8.5.1</b> Using a function</a></li>
+<li class="chapter" data-level="8.5.2" data-path="functions.html"><a href="functions.html#write-your-own-function"><i class="fa fa-check"></i><b>8.5.2</b> Write your own function</a></li>
+<li class="chapter" data-level="8.5.3" data-path="functions.html"><a href="functions.html#the-argument"><i class="fa fa-check"></i><b>8.5.3</b> The ‘…’ argument</a></li>
+<li class="chapter" data-level="8.5.4" data-path="functions.html"><a href="functions.html#function-environments-advanced"><i class="fa fa-check"></i><b>8.5.4</b> Function environments (advanced)</a></li>
+</ul></li>
+<li class="chapter" data-level="8.6" data-path="functions.html"><a href="functions.html#the-apply-family"><i class="fa fa-check"></i><b>8.6</b> The apply family</a><ul>
+<li class="chapter" data-level="8.6.1" data-path="functions.html"><a href="functions.html#taking-lapplysapply-to-the-next-level"><i class="fa fa-check"></i><b>8.6.1</b> Taking lapply/sapply to the next level</a></li>
+</ul></li>
+<li class="chapter" data-level="8.7" data-path="functions.html"><a href="functions.html#exercises-5"><i class="fa fa-check"></i><b>8.7</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="optimization.html"><a href="optimization.html"><i class="fa fa-check"></i><b>9</b> Optimization in R</a><ul>
+<li class="chapter" data-level="9.1" data-path="optimization.html"><a href="optimization.html#find-the-root-of-a-function"><i class="fa fa-check"></i><b>9.1</b> Find the root of a function</a></li>
+<li class="chapter" data-level="9.2" data-path="optimization.html"><a href="optimization.html#find-the-maximum-of-a-function"><i class="fa fa-check"></i><b>9.2</b> Find the maximum of a function</a></li>
+<li class="chapter" data-level="9.3" data-path="optimization.html"><a href="optimization.html#perform-maximum-likelihood-estimation-mle"><i class="fa fa-check"></i><b>9.3</b> Perform Maximum Likelihood Estimation (MLE)</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="lms.html"><a href="lms.html"><i class="fa fa-check"></i><b>10</b> Linear Regression Models in R</a><ul>
+<li class="chapter" data-level="10.1" data-path="lms.html"><a href="lms.html#a-simple-linear-regression-model"><i class="fa fa-check"></i><b>10.1</b> A simple linear regression model</a></li>
+<li class="chapter" data-level="10.2" data-path="lms.html"><a href="lms.html#a-multiple-linear-regression-model"><i class="fa fa-check"></i><b>10.2</b> A multiple linear regression model</a></li>
+<li class="chapter" data-level="10.3" data-path="lms.html"><a href="lms.html#exercises-6"><i class="fa fa-check"></i><b>10.3</b> Exercises</a></li>
+</ul></li>
+<li class="chapter" data-level="11" data-path="glms.html"><a href="glms.html"><i class="fa fa-check"></i><b>11</b> Generalized Linear Models in R</a><ul>
+<li class="chapter" data-level="11.1" data-path="glms.html"><a href="glms.html#modelling-count-data-with-poisson-regression-models"><i class="fa fa-check"></i><b>11.1</b> Modelling count data with Poisson regression models</a><ul>
+<li class="chapter" data-level="11.1.1" data-path="glms.html"><a href="glms.html#a-first-data-set"><i class="fa fa-check"></i><b>11.1.1</b> A first data set</a></li>
+<li class="chapter" data-level="11.1.2" data-path="glms.html"><a href="glms.html#fit-a-poisson-glm"><i class="fa fa-check"></i><b>11.1.2</b> Fit a Poisson GLM</a></li>
+<li class="chapter" data-level="11.1.3" data-path="glms.html"><a href="glms.html#the-use-of-exposure"><i class="fa fa-check"></i><b>11.1.3</b> The use of exposure</a></li>
+<li class="chapter" data-level="11.1.4" data-path="glms.html"><a href="glms.html#analysis-of-deviance-for-glms"><i class="fa fa-check"></i><b>11.1.4</b> Analysis of deviance for GLMs</a></li>
+<li class="chapter" data-level="11.1.5" data-path="glms.html"><a href="glms.html#an-example"><i class="fa fa-check"></i><b>11.1.5</b> An example</a></li>
+</ul></li>
+<li class="chapter" data-level="11.2" data-path="glms.html"><a href="glms.html#overdispersed-poisson-regression"><i class="fa fa-check"></i><b>11.2</b> Overdispersed Poisson regression</a></li>
+<li class="chapter" data-level="11.3" data-path="glms.html"><a href="glms.html#negative-binomial-regression"><i class="fa fa-check"></i><b>11.3</b> Negative Binomial regression</a></li>
+</ul></li>
+<li class="chapter" data-level="12" data-path="biblio.html"><a href="biblio.html"><i class="fa fa-check"></i><b>12</b> References</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Data science in insurance: an R intro</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="optimization" class="section level1">
+<h1><span class="header-section-number">9</span> Optimization in R</h1>
+<p>Actuaries often write functions (e.g. a likelihood) that have to be optimized. Here you’ll get to know some R functionalities to do optimization.</p>
+<div id="find-the-root-of-a-function" class="section level2">
+<h2><span class="header-section-number">9.1</span> Find the root of a function</h2>
+<p>Consider the function <span class="math inline">\(f: x \mapsto x^2-3^{-x}\)</span>. What is the root of this function over the interval <span class="math inline">\([0,1]\)</span>?</p>
+<div class="sourceCode" id="cb828"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb828-1"><a href="optimization.html#cb828-1"></a><span class="co"># in one line of code</span></span>
+<span id="cb828-2"><a href="optimization.html#cb828-2"></a><span class="kw">uniroot</span>(<span class="cf">function</span>(x) x<span class="op">^</span><span class="dv">2-3</span><span class="op">^</span>(<span class="op">-</span>x), <span class="dt">lower=</span><span class="dv">0</span>, <span class="dt">upper=</span><span class="dv">1</span>)</span></code></pre></div>
+<pre><code>$root
+[1] 0.68602
+
+$f.root
+[1] -8.0827e-06
+
+$iter
+[1] 4
+
+$init.it
+[1] NA
+
+$estim.prec
+[1] 6.1035e-05</code></pre>
+<div class="sourceCode" id="cb830"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb830-1"><a href="optimization.html#cb830-1"></a>? uniroot</span>
+<span id="cb830-2"><a href="optimization.html#cb830-2"></a><span class="co"># in more lines of code</span></span>
+<span id="cb830-3"><a href="optimization.html#cb830-3"></a>f &lt;-<span class="st"> </span><span class="cf">function</span>(x){</span>
+<span id="cb830-4"><a href="optimization.html#cb830-4"></a>    x<span class="op">^</span><span class="dv">2-3</span><span class="op">^</span>(<span class="op">-</span>x)</span>
+<span id="cb830-5"><a href="optimization.html#cb830-5"></a>}</span>
+<span id="cb830-6"><a href="optimization.html#cb830-6"></a><span class="co"># calculate root</span></span>
+<span id="cb830-7"><a href="optimization.html#cb830-7"></a>opt &lt;-<span class="st"> </span><span class="kw">uniroot</span>(f, <span class="dt">lower=</span><span class="dv">0</span>, <span class="dt">upper=</span><span class="dv">1</span>)</span>
+<span id="cb830-8"><a href="optimization.html#cb830-8"></a><span class="co"># check arguments</span></span>
+<span id="cb830-9"><a href="optimization.html#cb830-9"></a><span class="kw">names</span>(opt)</span></code></pre></div>
+<pre><code>[1] &quot;root&quot;       &quot;f.root&quot;     &quot;iter&quot;       &quot;init.it&quot;    &quot;estim.prec&quot;</code></pre>
+<div class="sourceCode" id="cb832"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb832-1"><a href="optimization.html#cb832-1"></a><span class="co"># evaluate &#39;f(.)&#39; in the root</span></span>
+<span id="cb832-2"><a href="optimization.html#cb832-2"></a><span class="kw">f</span>(opt<span class="op">$</span>root)</span></code></pre></div>
+<pre><code>[1] -8.0827e-06</code></pre>
+<div class="sourceCode" id="cb834"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb834-1"><a href="optimization.html#cb834-1"></a><span class="co"># visualize the function</span></span>
+<span id="cb834-2"><a href="optimization.html#cb834-2"></a>range &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="op">-</span><span class="dv">2</span>, <span class="dv">2</span>, <span class="dt">by=</span><span class="fl">0.2</span>)</span>
+<span id="cb834-3"><a href="optimization.html#cb834-3"></a><span class="kw">plot</span>(range, <span class="kw">f</span>(range), <span class="dt">type=</span><span class="st">&quot;l&quot;</span>)</span>
+<span id="cb834-4"><a href="optimization.html#cb834-4"></a><span class="kw">points</span>(opt<span class="op">$</span>root, <span class="kw">f</span>(opt<span class="op">$</span>root), <span class="dt">pch=</span><span class="dv">20</span>)</span>
+<span id="cb834-5"><a href="optimization.html#cb834-5"></a><span class="kw">segments</span>(opt<span class="op">$</span>root, <span class="dv">-7</span>, opt<span class="op">$</span>root, <span class="dv">0</span>, <span class="dt">lty=</span><span class="dv">2</span>)</span>
+<span id="cb834-6"><a href="optimization.html#cb834-6"></a><span class="kw">segments</span>(<span class="op">-</span><span class="dv">3</span>, <span class="dv">0</span>, opt<span class="op">$</span>root, <span class="dv">0</span>, <span class="dt">lty=</span><span class="dv">2</span>)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-209-1.png" width="576" style="display: block; margin: auto;" /></p>
+<hr />
+</div>
+<div id="find-the-maximum-of-a-function" class="section level2">
+<h2><span class="header-section-number">9.2</span> Find the maximum of a function</h2>
+<p>You look for the maximum of the beta density with a given set of parameters.</p>
+<div class="sourceCode" id="cb835"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb835-1"><a href="optimization.html#cb835-1"></a><span class="co"># visualize the density</span></span>
+<span id="cb835-2"><a href="optimization.html#cb835-2"></a>shape1 &lt;-<span class="st"> </span><span class="dv">3</span></span>
+<span id="cb835-3"><a href="optimization.html#cb835-3"></a>shape2 &lt;-<span class="st"> </span><span class="dv">2</span></span>
+<span id="cb835-4"><a href="optimization.html#cb835-4"></a>x &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dt">from=</span><span class="dv">0</span>, <span class="dt">to=</span><span class="dv">1</span>, <span class="dt">by=</span><span class="fl">0.01</span>)</span>
+<span id="cb835-5"><a href="optimization.html#cb835-5"></a><span class="kw">curve</span>(<span class="kw">dbeta</span>(x,shape1,shape2), <span class="dt">xlim=</span><span class="kw">range</span>(x))</span>
+<span id="cb835-6"><a href="optimization.html#cb835-6"></a></span>
+<span id="cb835-7"><a href="optimization.html#cb835-7"></a>opt_beta &lt;-<span class="st"> </span><span class="kw">optimize</span>(dbeta, <span class="dt">interval =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="dt">maximum =</span> <span class="ot">TRUE</span>, shape1, shape2)</span>
+<span id="cb835-8"><a href="optimization.html#cb835-8"></a><span class="kw">points</span>(opt_beta<span class="op">$</span>maximum, opt_beta<span class="op">$</span>objective, <span class="dt">pch=</span><span class="dv">20</span>, <span class="dt">cex=</span><span class="fl">1.5</span>)</span>
+<span id="cb835-9"><a href="optimization.html#cb835-9"></a><span class="kw">segments</span>(opt_beta<span class="op">$</span>maximum, <span class="dv">0</span>, opt_beta<span class="op">$</span>maximum, opt_beta<span class="op">$</span>objective, <span class="dt">lty=</span><span class="dv">2</span>)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-210-1.png" width="576" style="display: block; margin: auto;" /></p>
+<hr />
+</div>
+<div id="perform-maximum-likelihood-estimation-mle" class="section level2">
+<h2><span class="header-section-number">9.3</span> Perform Maximum Likelihood Estimation (MLE)</h2>
+<p>Once we know the expression for a probability distribution, we can estimate its parameters by maximizing the (log-)likelihood. Take logistic regression, for example. Here, the likelihood function is given by
+<span class="math display">\[L(\boldsymbol{\beta}) = \prod_{i=1}^{\text{n}} p_i^{y_i} (1 - p_i)^{(1 - y_i)}\]</span>
+where
+<span class="math display">\[p_i = \frac{e^{\boldsymbol{x}_i^{&#39;} \boldsymbol{\beta}}}{1 + e^{\boldsymbol{x}_i^{&#39;} \boldsymbol{\beta}}}\]</span>
+and where <span class="math inline">\(\boldsymbol{x}_i\)</span> is the covariate vector for observation <span class="math inline">\(i\)</span> and <span class="math inline">\(\boldsymbol{\beta}\)</span> the parameter vector. The log-likelihood is given by
+<span class="math display">\[\ell(\boldsymbol{\beta}) = \sum_{i=1}^{\text{n}} y_i \log(p_i) +  (1 - y_i) \log(1 - p_i).\]</span></p>
+<p>Hence, with a dataset, we optimize this function to get the maximum likelihood estimate <span class="math inline">\(\hat{\boldsymbol{\beta}}\)</span>. To do this in R, let’s use the <code>birthwt</code> dataset from the package <code>MASS</code>.</p>
+<div class="sourceCode" id="cb836"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb836-1"><a href="optimization.html#cb836-1"></a><span class="kw">library</span>(MASS)</span>
+<span id="cb836-2"><a href="optimization.html#cb836-2"></a><span class="kw">data</span>(<span class="st">&quot;birthwt&quot;</span>)</span>
+<span id="cb836-3"><a href="optimization.html#cb836-3"></a>?birthwt</span>
+<span id="cb836-4"><a href="optimization.html#cb836-4"></a>Df &lt;-<span class="st"> </span>birthwt</span>
+<span id="cb836-5"><a href="optimization.html#cb836-5"></a><span class="kw">head</span>(birthwt)</span></code></pre></div>
+<pre><code>   low age lwt race smoke ptl ht ui ftv  bwt
+85   0  19 182    2     0   0  0  1   0 2523
+86   0  33 155    3     0   0  0  0   3 2551
+87   0  20 105    1     1   0  0  0   1 2557
+88   0  21 108    1     1   0  0  1   2 2594
+89   0  18 107    1     1   0  0  1   0 2600
+91   0  21 124    3     0   0  0  0   0 2622</code></pre>
+<p>We want to model the probability on low birthweight as a function of the variables <code>age</code>, <code>lwt</code>, <code>race</code> and <code>smoke</code> and create an object <code>Form</code> containing this formula to make life easy.</p>
+<div class="sourceCode" id="cb838"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb838-1"><a href="optimization.html#cb838-1"></a>Form &lt;-<span class="st"> </span><span class="kw">formula</span>(low <span class="op">~</span><span class="st"> </span>age <span class="op">+</span><span class="st"> </span>lwt <span class="op">+</span><span class="st"> </span>race <span class="op">+</span><span class="st"> </span>smoke)</span></code></pre></div>
+<p>When fitting a logistic regression model, we get the following results.</p>
+<div class="sourceCode" id="cb839"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb839-1"><a href="optimization.html#cb839-1"></a>(glmFit &lt;-<span class="st"> </span><span class="kw">glm</span>(Form, <span class="dt">data =</span> Df, <span class="dt">family =</span> binomial))</span></code></pre></div>
+<pre><code>
+Call:  glm(formula = Form, family = binomial, data = Df)
+
+Coefficients:
+(Intercept)          age          lwt         race        smoke  
+   -0.21886     -0.02933     -0.00996      0.48349      1.06028  
+
+Degrees of Freedom: 188 Total (i.e. Null);  184 Residual
+Null Deviance:      235 
+Residual Deviance: 217  AIC: 227</code></pre>
+<p>We will use this to check if we did everything correctly when using our self-written code. We first start by writing a function for the (negative) log-likelihood.</p>
+<div class="sourceCode" id="cb841"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb841-1"><a href="optimization.html#cb841-1"></a>logLikLR &lt;-<span class="st"> </span><span class="cf">function</span>(B, X, y) {</span>
+<span id="cb841-2"><a href="optimization.html#cb841-2"></a>  Eta  &lt;-<span class="st"> </span>X <span class="op">%*%</span><span class="st"> </span>B</span>
+<span id="cb841-3"><a href="optimization.html#cb841-3"></a>  pHat &lt;-<span class="st"> </span><span class="kw">binomial</span>()<span class="op">$</span><span class="kw">linkinv</span>(X <span class="op">%*%</span><span class="st"> </span>B)</span>
+<span id="cb841-4"><a href="optimization.html#cb841-4"></a>  <span class="op">-</span><span class="kw">sum</span>(y <span class="op">*</span><span class="st"> </span><span class="kw">log</span>(pHat) <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>y) <span class="op">*</span><span class="st"> </span><span class="kw">log</span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>pHat))</span>
+<span id="cb841-5"><a href="optimization.html#cb841-5"></a>}</span></code></pre></div>
+<p>Note that we use the negative log-likelihood here. We do this because the functions that we will use minimize our function instead of maximizing it.</p>
+<p>When programming, it’s always good to perform some sanity checks. A double or tripple check will assure you that you did not do anything stupid (such as having written a <code>+</code> instead of a <code>-</code>).</p>
+<div class="figure">
+<img src="images/SanityCheck.jpg" alt="" />
+<p class="caption">Retrieved from <a href="https://lefunny.net/funny-sanity-saying/" class="uri">https://lefunny.net/funny-sanity-saying/</a></p>
+</div>
+<div class="sourceCode" id="cb842"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb842-1"><a href="optimization.html#cb842-1"></a><span class="kw">logLik</span>(glmFit)</span></code></pre></div>
+<pre><code>&#39;log Lik.&#39; -108.54 (df=5)</code></pre>
+<div class="sourceCode" id="cb844"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb844-1"><a href="optimization.html#cb844-1"></a><span class="op">-</span><span class="kw">logLikLR</span>(<span class="kw">coef</span>(glmFit), <span class="kw">model.matrix</span>(glmFit), Df<span class="op">$</span>low)</span></code></pre></div>
+<pre><code>[1] -108.54</code></pre>
+<p>OK, so that checks out. Noice, let’s go the next step. Now we need a function that minimizes our (multivariate) function for us. For this, we can use the function <code>optim</code>. When using <code>optim</code>, we also need some initial values for our parameters. The log-likelihood for our logistic regression model isn’t overly complex and hence, we can just use 0’s as starting values.</p>
+<div class="sourceCode" id="cb846"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb846-1"><a href="optimization.html#cb846-1"></a>Bstart  &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">0</span>, <span class="kw">length</span>(<span class="kw">coef</span>(glmFit)))</span>
+<span id="cb846-2"><a href="optimization.html#cb846-2"></a>X       &lt;-<span class="st"> </span><span class="kw">model.matrix</span>(Form, <span class="dt">data =</span> Df)</span>
+<span id="cb846-3"><a href="optimization.html#cb846-3"></a>y       &lt;-<span class="st"> </span>Df<span class="op">$</span>low</span>
+<span id="cb846-4"><a href="optimization.html#cb846-4"></a>LRoptim &lt;-<span class="st"> </span><span class="kw">optim</span>(Bstart, logLikLR, <span class="dt">X =</span> X, <span class="dt">y =</span> y)</span>
+<span id="cb846-5"><a href="optimization.html#cb846-5"></a><span class="kw">cbind</span>(LRoptim<span class="op">$</span>par, glmFit<span class="op">$</span>coefficients)</span></code></pre></div>
+<pre><code>                 [,1]       [,2]
+(Intercept) -0.216013 -0.2188631
+age         -0.028919 -0.0293297
+lwt         -0.010107 -0.0099619
+race         0.486534  0.4834924
+smoke        1.057790  1.0602764</code></pre>
+<p>OK, not bad, but I think we can do better. So let’s use some other optimizers.</p>
+<div class="sourceCode" id="cb848"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb848-1"><a href="optimization.html#cb848-1"></a>LRoptim &lt;-<span class="st"> </span><span class="kw">optim</span>(Bstart, logLikLR, <span class="dt">X =</span> X, <span class="dt">y =</span> y, <span class="dt">method =</span> <span class="st">&quot;BFGS&quot;</span>)</span>
+<span id="cb848-2"><a href="optimization.html#cb848-2"></a><span class="kw">cbind</span>(LRoptim<span class="op">$</span>par, glmFit<span class="op">$</span>coefficients)</span></code></pre></div>
+<pre><code>                 [,1]       [,2]
+(Intercept) -0.187902 -0.2188631
+age         -0.029567 -0.0293297
+lwt         -0.010137 -0.0099619
+race         0.481723  0.4834924
+smoke        1.060900  1.0602764</code></pre>
+<p>Euhm, yes, looking good for all estimated coefficients except the intercept. What do we do now? One way to further improve it, is by adding a function that returns the gradient vector. So, let’s do this. Remember that we are working with the negative log-likelihood and that we therefore also have to adjust our function to compute the gradient!</p>
+<div class="sourceCode" id="cb850"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb850-1"><a href="optimization.html#cb850-1"></a>Gradient &lt;-<span class="st"> </span><span class="cf">function</span>(B, X, y) {</span>
+<span id="cb850-2"><a href="optimization.html#cb850-2"></a>  pHat &lt;-<span class="st"> </span><span class="kw">binomial</span>()<span class="op">$</span><span class="kw">linkinv</span>(X <span class="op">%*%</span><span class="st"> </span>B)</span>
+<span id="cb850-3"><a href="optimization.html#cb850-3"></a>  <span class="op">-</span><span class="kw">crossprod</span>(X, y <span class="op">-</span><span class="st"> </span>pHat)</span>
+<span id="cb850-4"><a href="optimization.html#cb850-4"></a>}</span>
+<span id="cb850-5"><a href="optimization.html#cb850-5"></a>LRoptim &lt;-<span class="st"> </span><span class="kw">optim</span>(Bstart, logLikLR, <span class="dt">X =</span> X, <span class="dt">y =</span> y, <span class="dt">method =</span> <span class="st">&quot;BFGS&quot;</span>, <span class="dt">gr =</span> Gradient)</span>
+<span id="cb850-6"><a href="optimization.html#cb850-6"></a><span class="kw">cbind</span>(LRoptim<span class="op">$</span>par, glmFit<span class="op">$</span>coefficients)</span></code></pre></div>
+<pre><code>                  [,1]       [,2]
+(Intercept) -0.2186091 -0.2188631
+age         -0.0293351 -0.0293297
+lwt         -0.0099625 -0.0099619
+race         0.4834678  0.4834924
+smoke        1.0602591  1.0602764</code></pre>
+<p>Phew, that looks a lot better! As an alternative to <code>optim</code>, we can use <code>nlm</code>.</p>
+<div class="sourceCode" id="cb852"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb852-1"><a href="optimization.html#cb852-1"></a>LRnlm &lt;-<span class="st"> </span><span class="kw">nlm</span>(logLikLR, Bstart, <span class="dt">X =</span> X, <span class="dt">y =</span> y)</span>
+<span id="cb852-2"><a href="optimization.html#cb852-2"></a><span class="kw">cbind</span>(LRnlm<span class="op">$</span>estimate, glmFit<span class="op">$</span>coefficients)</span></code></pre></div>
+<pre><code>                  [,1]       [,2]
+(Intercept) -0.2186088 -0.2188631
+age         -0.0293284 -0.0293297
+lwt         -0.0099641 -0.0099619
+race         0.4834839  0.4834924
+smoke        1.0602703  1.0602764</code></pre>
+<p>We see that the results of <code>nlm</code> are even more accurate without having to adjust the default settings. As with <code>optim</code>, we can also add a function to compute the gradient, but here we have to add it as an attribute in the original function.</p>
+<div class="sourceCode" id="cb854"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb854-1"><a href="optimization.html#cb854-1"></a>logLikLR &lt;-<span class="st"> </span><span class="cf">function</span>(B, X, y) {</span>
+<span id="cb854-2"><a href="optimization.html#cb854-2"></a>  Eta  &lt;-<span class="st"> </span>X <span class="op">%*%</span><span class="st"> </span>B</span>
+<span id="cb854-3"><a href="optimization.html#cb854-3"></a>  pHat &lt;-<span class="st"> </span><span class="kw">binomial</span>()<span class="op">$</span><span class="kw">linkinv</span>(X <span class="op">%*%</span><span class="st"> </span>B)</span>
+<span id="cb854-4"><a href="optimization.html#cb854-4"></a>  LL   &lt;-<span class="st"> </span><span class="op">-</span><span class="kw">sum</span>(y <span class="op">*</span><span class="st"> </span><span class="kw">log</span>(pHat) <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>y) <span class="op">*</span><span class="st"> </span><span class="kw">log</span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>pHat))</span>
+<span id="cb854-5"><a href="optimization.html#cb854-5"></a>  <span class="kw">attr</span>(LL, <span class="st">&quot;gradient&quot;</span>) &lt;-<span class="st"> </span><span class="op">-</span><span class="kw">crossprod</span>(X, y <span class="op">-</span><span class="st"> </span>pHat)</span>
+<span id="cb854-6"><a href="optimization.html#cb854-6"></a>  LL</span>
+<span id="cb854-7"><a href="optimization.html#cb854-7"></a>}</span>
+<span id="cb854-8"><a href="optimization.html#cb854-8"></a>LRnlm &lt;-<span class="st"> </span><span class="kw">nlm</span>(logLikLR, Bstart, <span class="dt">X =</span> X, <span class="dt">y =</span> y)</span>
+<span id="cb854-9"><a href="optimization.html#cb854-9"></a><span class="kw">cbind</span>(LRnlm<span class="op">$</span>estimate, glmFit<span class="op">$</span>coefficients)</span></code></pre></div>
+<pre><code>                  [,1]       [,2]
+(Intercept) -0.2188630 -0.2188631
+age         -0.0293297 -0.0293297
+lwt         -0.0099619 -0.0099619
+race         0.4834924  0.4834924
+smoke        1.0602765  1.0602764</code></pre>
+<p>We can even add the Hessian matrix (and again, remember that we are working with the negative log-likelihood)!</p>
+<div class="sourceCode" id="cb856"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb856-1"><a href="optimization.html#cb856-1"></a>logLikLR &lt;-<span class="st"> </span><span class="cf">function</span>(B, X, y) {</span>
+<span id="cb856-2"><a href="optimization.html#cb856-2"></a>  Eta  &lt;-<span class="st"> </span>X <span class="op">%*%</span><span class="st"> </span>B</span>
+<span id="cb856-3"><a href="optimization.html#cb856-3"></a>  pHat &lt;-<span class="st"> </span><span class="kw">as.vector</span>(<span class="kw">binomial</span>()<span class="op">$</span><span class="kw">linkinv</span>(X <span class="op">%*%</span><span class="st"> </span>B))</span>
+<span id="cb856-4"><a href="optimization.html#cb856-4"></a>  W    &lt;-<span class="st"> </span><span class="kw">diag</span>(pHat <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>pHat), <span class="dt">ncol =</span> <span class="kw">length</span>(pHat))</span>
+<span id="cb856-5"><a href="optimization.html#cb856-5"></a>  LL   &lt;-<span class="st"> </span><span class="op">-</span><span class="kw">sum</span>(y <span class="op">*</span><span class="st"> </span><span class="kw">log</span>(pHat) <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>y) <span class="op">*</span><span class="st"> </span><span class="kw">log</span>(<span class="dv">1</span> <span class="op">-</span><span class="st"> </span>pHat))</span>
+<span id="cb856-6"><a href="optimization.html#cb856-6"></a>  <span class="kw">attr</span>(LL, <span class="st">&quot;gradient&quot;</span>) &lt;-<span class="st"> </span><span class="op">-</span><span class="kw">crossprod</span>(X, y <span class="op">-</span><span class="st"> </span>pHat)</span>
+<span id="cb856-7"><a href="optimization.html#cb856-7"></a>  <span class="kw">attr</span>(LL, <span class="st">&quot;hessian&quot;</span>) &lt;-<span class="st"> </span><span class="kw">t</span>(X) <span class="op">%*%</span><span class="st"> </span>W <span class="op">%*%</span><span class="st"> </span>X</span>
+<span id="cb856-8"><a href="optimization.html#cb856-8"></a>  LL</span>
+<span id="cb856-9"><a href="optimization.html#cb856-9"></a>}</span>
+<span id="cb856-10"><a href="optimization.html#cb856-10"></a>LRnlm &lt;-<span class="st"> </span><span class="kw">nlm</span>(logLikLR, Bstart, <span class="dt">X =</span> X, <span class="dt">y =</span> y, <span class="dt">gradtol =</span> <span class="fl">1e-8</span>)</span>
+<span id="cb856-11"><a href="optimization.html#cb856-11"></a><span class="kw">cbind</span>(LRnlm<span class="op">$</span>estimate, glmFit<span class="op">$</span>coefficients)</span></code></pre></div>
+<pre><code>                  [,1]       [,2]
+(Intercept) -0.2188631 -0.2188631
+age         -0.0293297 -0.0293297
+lwt         -0.0099619 -0.0099619
+race         0.4834924  0.4834924
+smoke        1.0602764  1.0602764</code></pre>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="functions.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="lms.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

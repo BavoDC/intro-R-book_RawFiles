@@ -1,0 +1,306 @@
+# Generalized Linear Models in R {#glms}
+
+You'll now study the use of Generalized Linear Models in `R` for insurance ratemaking. You focus first on the example from Rob Kaas' et al. (2008) Modern Actuarial Risk Theory book (see Section 9.5 in this book), with simulated claim frequency data. 
+
+## Modelling count data with Poisson regression models
+
+### A first data set
+This example uses artifical, simulated data. You consider data on claim frequencies, registered on 54 risk cells over a period of 7 years. `n` gives the number of claims, and `expo` the corresponding number of policies in a risk cell; each policy is followed over a period of 7 years and `n` is the number of claims reported over this total period.
+
+```{r, eval=FALSE}
+n <- scan(n = 54)
+1  8 10  8  5 11 14 12 11 10  5 12 13 12 15 13 12 24
+12 11  6  8 16 19 28 11 14  4 12  8 18  3 17  6 11 18
+12  3 10 18 10 13 12 31 16 16 13 14  8 19 20  9 23 27
+
+expo <- scan(n = 54) * 7
+10 22 30 11 15 20 25 25 23 28 19 22 19 21 19 16 18 29
+25 18 20 13 26 21 27 14 16 11 23 26 29 13 26 13 17 27
+20 18 20 29 27 24 23 26 18 25 17 29 11 24 16 11 22 29
+
+n
+expo
+```
+
+```{r, echo=FALSE}
+n <- scan(textConnection("
+1  8 10  8  5 11 14 12 11 10  5 12 13 12 15 13 12 24
+12 11  6  8 16 19 28 11 14  4 12  8 18  3 17  6 11 18
+12  3 10 18 10 13 12 31 16 16 13 14  8 19 20  9 23 27"));
+
+expo <- scan(textConnection(" 
+10 22 30 11 15 20 25 25 23 28 19 22 19 21 19 16 18 29
+25 18 20 13 26 21 27 14 16 11 23 26 29 13 26 13 17 27
+20 18 20 29 27 24 23 26 18 25 17 29 11 24 16 11 22 29")) * 7;
+
+n
+expo
+```
+
+The goal is to illustrate ratemaking by explaining the expected number of claims as a function of a set of observable risk factors. Since artificial data are used in this example, you use simulated or self constructed risk factors. 4 factor variables are created, the `sex` of the policyholder (1=female and 2=male), the `region` where she lives (1=countryside, 2=elsewhere and 3=big city), the `type` of car (1=small, 2=middle and 3=big) and `job` class of the insured (1=civil servant/actuary/..., 2=in-between and 3=dynamic drivers). You use the `R` instruction `rep()` to construct these risk factors. In total 54 risk cells are created in this way. Note that you use the `R` instruction `as.factor()` to specify the risk factors as factor (or: categorical) covariates.
+
+```{r}
+sex <- as.factor(rep(1:2, each=27, len=54))
+region <- as.factor(rep(1:3, each=9, len=54))
+type <- as.factor(rep(1:3, each=3, len=54))
+job <- as.factor(rep(1:3, each=1, len=54))
+sex
+region
+type
+job
+```
+
+### Fit a Poisson GLM
+
+The response variable $N_i$ is the number of claims reported on risk cell `i`, hence it is reasonable to assume a Poisson distribution for this random variable. You fit the following Poisson GLM to the data
+
+\begin{eqnarray*}
+N_i &\sim& \text{POI}(d_i \cdot \lambda_i) 
+\end{eqnarray*}
+
+where $\lambda_i = \exp{(\boldsymbol{x}^{'}_i\boldsymbol{\beta})}$ and $d_i$ is the exposure for risk cell $i$. In `R` you use the instruction `glm` to fit a GLM. Covariates are listed with `+`, and the log of `expo` is used as an offset. Indeed, 
+
+\begin{eqnarray*}
+N_i &\sim& \text{POI}(d_i \cdot \lambda_i) \\
+&= & \text{POI}(\exp{(\boldsymbol{x}^{'}_i \boldsymbol{\beta}+\log{(d_i)})})
+\end{eqnarray*}
+
+The `R` instruction to fit this GLM (with `sex`, `region`, `type` and `job` the factor variables that construct the linear predictor) then goes as follows
+
+```{r}
+g1 <- glm(n ~ sex + region + type + job + offset(log(expo)), fam = poisson(link = log))
+```
+
+where the argument `fam=` indicates the distribution from the exponential family that is assumed. In this case you work with the Poisson distribution with logarithmic link (which is the default link in `R`). All available distributions and their default link functions are listed here http://stat.ethz.ch/R-manual/R-patched/library/stats/html/family.html.
+
+You store the results of the `glm` fit in the object `g1`. You consult this object with the `summary` instruction
+
+```{r}
+summary(g1)
+```
+
+This `summary` of a `glm` fit lists (among others) the following items:
+
+* the covariates used in the model, the corresponding estimates for the regression parameters ($\boldsymbol{\hat{\beta}}$), their standard errors, $z$ statistics and corresponding $P$ values; 
+* the dispersion parameter used; for the standard Poisson regression model this dispersion parameter is equal to 1, as indicated in the `R` output;
+* the null deviance - the deviance of the model that uses only an intercept - and the residual deviance - the deviance of the current model;
+    + the null deviance corresponds to $53$ degrees of freedom, that is $54-1$ where $54$ is the number of observations used and $1$ the number of parameters (here: just the intercept); 
+    + the residual deviance corresponds to $54-8=46$ degrees of freedom, since it uses $8$ parameters;
+* the AIC calculated for the considered regression model;
+* the number of Fisher's iterations needed to get convergence of the iterative numerical method to calculate the MLEs of the regression parameters in $\boldsymbol{\beta}$.
+  
+The instruction `names` shows the names of the variables stored within a `glm` object. One of these variables is called `coef` and contains the vector of regression parameter estimates ($\hat{\boldsymbol{\beta}}$). It can be extracted with the instruction `g1$coef`. 
+
+```{r}
+names(g1)
+g1$coef
+```
+
+Other variables can be consulted in a similar way. For example, fitted values at the original level are $\hat{\mu}_i=\exp{(\hat{\eta}_i)}$ where the fitted values at the level of the linear predictor are stored in $\hat{\eta}_i=\log{(d_i)}+\boldsymbol{x}^{'}_i\hat{\boldsymbol{\beta}}$. You then plot the fitted values versus the observed number of claims `n`. You add two reference lines: the diagonal and the least squares line.
+
+```{r}
+g1$fitted.values
+g1$linear.predictors
+
+plot(g1$fitted.values, n, xlab = "Fitted values", ylab = "Observed claims")
+abline(lm(g1$fitted ~ n), col="light blue", lwd=2)
+abline(0, 1, col = "dark blue", lwd=2)
+```
+
+To extract the AIC you use
+
+```{r}
+AIC(g1)
+```
+
+### The use of exposure
+
+The use of `expo`, the exposure measure, in a Poisson GLM often leads to confusion. For example, the following `glm` instruction uses a transformed response variable $n/expo$
+
+```{r, warning=FALSE, message=FALSE}
+g2 <- glm(n/expo ~ sex+region+type+job,fam=poisson(link=log))
+summary(g2)
+```
+
+and the object `g3` stores the result of a Poisson fit on the same response variable, while taking `expo` into account as weights in the likelihood.
+
+```{r, warning=FALSE, message=FALSE}
+g3 <- glm(n/expo ~ sex+region+type+job,weights=expo,fam=poisson(link=log))
+summary(g3)
+```
+
+Based on this output you conclude that `g1` (with the log of exposure as offset in the linear predictor) and `g3` are the same, but `g2` is not. The mathematical explanation for this observation is given in the note 'WeightsInGLMs.pdf' available from Katrien's lecture notes (available upon request).
+
+### Analysis of deviance for GLMs
+
+#### The basics
+
+You now focus on the selection of variables within a GLM based on a drop in deviance analysis. Your starting point is the GLM object `g1` and the `anova` instruction. 
+
+```{r}
+g1 <- glm(n ~ region + type + job, poisson, offset = log(expo))
+anova(g1, test = "Chisq")
+```
+
+The analysis of deviance table first summarizes the Poisson GLM object (response `n`, link is `log`, family is `poisson`). The table starts with the deviance of the `NULL` model (just using an intercept), and then adds risk factors sequentially. Recall that in this example only factor covariates are present. Adding `region` (which has three levels, and requires two dummy variables) to the `NULL` model causes a drop in deviance of `21.597`, corresponding to `54-1-2` degrees of freedom and a resulting (residual) deviance of `83.135`. The drop in deviance test allows to test whether the model term `region` is significant. That is:
+$$ H_0: \beta_{\text{region}_2}=0\ \text{and}\ \beta_{\text{region}_3}=0. $$
+The distribution of the corresponding test statistic is a Chi-squared distribution with `2` (i.e `53-51`) degrees of freedom. The corresponding $P$-value is `2.043e-05`. Hence, the model using `region` and the intercept is preferred above the `NULL` model. We can verify the $P$-value by calculating the following probability
+
+$$ Pr(X > 21.597)\ \text{with}\ X \sim \chi^2_{2}.$$
+
+Indeed, this is the probability - under $H_0$ - to obtain a value of the test statistic that is the same or more extreme than the actual observed value of the test statistic. Calculations in `R` are as follows:
+
+```{r}
+# p-value for region
+1 - pchisq(21.597, 2)
+# or
+pchisq(21.597, 2, lower.tail = FALSE)
+```
+
+Continuing the discussion of the above printed `anova` table, the next step is to add `type` to the model using an intercept and `region`. This causes a drop in deviance of `38.195`. You conclude that also `type` is a significant model term. The last step adds `job` to the existing model (with intercept, `region` and `type`). You conclude that `job` does not have a significant impact when explaining the expected number of claims. 
+
+Based on this analysis of deviance table `region` and `type` seem to be relevant risk factors, but `job` is not, when explaining the expected number of claims.
+
+The Chi-squared distribution is used here, since the regular Poisson regression model does not require the estimation of a dispersion parameter. 
+
+```{r,eval=FALSE}
+anova(g1,test="Chisq")
+```
+
+The setting changes when the dispersion parameter is unknown and should be estimated. If you run the analysis of deviance for glm object `g1` with the `F` distribution as distribution for the test statistic, you obtain:
+
+```{r}
+# what if we use 'F' instead of 'Chisq'?
+anova(g1,test="F") 
+# not appropriate for regular Poisson regression, see Warning message in the console!
+```
+
+and a `Warning message` is printed in the console that says
+
+```{r}
+# Warning message:
+# In anova.glm(g1, test = "F") :
+#   using F test with a 'poisson' family is inappropriate
+```
+
+It is insightful to understand how the output shown for the $F$ statistic and corresponding $P$-value is calculated. For example, the drop in deviance test comparing the `NULL` model viz a model using an intercept and `region` corresponds to an observed test statistic of `10.7985`. The calculation of the $F$ statistic requires
+
+$$ \frac{\text{Drop-in-deviance}/q}{\hat{\phi}},  $$
+where $q$ is the difference in degrees of freedom between the compared models and $\hat{\phi}$ is the estimate for the dispersion parameter. In this example $F$ corresponding to `region` is calculated as
+
+```{r}
+(21.597/2)/1
+```
+
+However, as explained, since the model investigated has a known dispersion, the Chi-squared test is most appropriate here. More details are here: https://stat.ethz.ch/R-manual/R-devel/library/stats/html/anova.glm.html.
+
+### An example
+
+You are now ready to study a complete analysis-of-deviance table. This table investigates 10 possible model specifications `g1-g10`. 
+```{r}
+# construct an analysis-of-deviance table
+g1 <- glm(n ~ 1, poisson , offset=log(expo))
+g2 <- glm(n ~ sex, poisson , offset=log(expo))
+g3 <- glm(n ~ sex+region, poisson, offset=log(expo))
+g4 <- glm(n ~ sex+region+sex:region, poisson, offset=log(expo))
+g5 <- glm(n ~ type, poisson, offset=log(expo))
+g6 <- glm(n ~ region, poisson, offset=log(expo))
+g7 <- glm(n ~ region+type, poisson, offset=log(expo))
+g8 <- glm(n ~ region+type+region:type, poisson, offset=log(expo))
+g9 <- glm(n ~ region+type+job, poisson, offset=log(expo))
+g10 <- glm(n ~ region+type+sex, poisson, offset=log(expo))
+```
+
+For example, the residual deviance obtained with model `g8` (using intercept, `region`, `type` and the interaction of `region` and `type`) is 42.4, see
+
+```{r}
+summary(g8)
+g8$deviance
+```
+
+Using the technique of drop in deviance analysis you compare the models that are nested (!!) and decide which model specification is the preferred one. To do this, one can run multiple `anova` instructions such as
+
+```{r}
+anova(g1, g2, test = "Chisq")
+```
+which compares nested models `g1` and `g2`, or `g7` and `g8`
+
+```{r}
+anova(g7, g8, test = "Chisq")
+```
+---
+
+## Overdispersed Poisson regression
+
+The overdispersed Poisson model builds a regression model for the mean of the response variable
+$$ E[N_i] = \exp{(\log d_i + \boldsymbol{x}_i^{'}\boldsymbol{\beta})} $$
+and expressses the variance as 
+$$ \text{Var}(N_i) = \phi \cdot E[N_i], $$
+with $N_i$ the number of claims reported by policyholder $i$ and $\phi$ an unknown dispersion parameter that should be estimated. This is called a quasi-Poisson model (see http://stat.ethz.ch/R-manual/R-patched/library/stats/html/family.html) and Section 1 in http://data.princeton.edu/wws509/notes/c4a.pdf for a more detailed explanation. To illustrate the differences between a regular Poisson and an overdispersed Poisson model, we fit the models `g.poi` and `g.quasi`:
+
+```{r}
+g.poi <- glm(n ~ region + type, poisson, offset = log(expo))
+summary(g.poi)
+
+g.quasi <- glm(n ~ region + type, quasipoisson, offset = log(expo))
+summary(g.quasi)
+```
+
+Parameter estimates in both models are the same, but standard errors (and hence $P$-values) are not! You also see that `g.poi` reports `z-value` whereas `g.quasi` reports `t-value`, because the latter model estimates an extra parameter, i.e. the dispersion parameter.
+
+Various methods are available to estimate the dispersion parameter, e.g.
+
+$$ \hat{\phi} = \frac{\text{Deviance}}{n-(p+1)}$$
+
+and
+
+$$ \hat{\phi} = \frac{\text{Pearson}\ \chi^2}{n-(p+1)}$$
+
+where $p+1$ is the total number of parameters (including the intercept) used in the considered model. The (residual) deviance is the deviance of the considered model and can also be obtained as the sum of squared deviance residuals. The Pearson $\chi^2$ statistic is the sum of the squared Pearson residuals. The latter is the default in R. Hence, you can verify the dispersion parameter of `0.896` as printed in the `summary` of `g.quasi`:
+
+```{r}
+# dispersion parameter in g is estimated as follows
+phi <- sum(residuals(g.poi, "pearson")^2)/g.poi$df.residual
+phi
+```
+
+Since $\hat{\phi}$ is less than 1, the result seems to indicate underdispersion. However, as discussed in Section 2.4 'Overdispersion' in the book of Denuit et al. (2007), real data on reported claim counts very often reveal overdispersion. The counterintuitive result that is obtained here is probably due to the fact that artificial, self-constructed data are used. 
+
+When going from `g.poi` (regular Poisson) to `g.quasi` the standard errors are changed as follows: 
+
+$$ \text{SE}_{\text{Q-POI}} = \sqrt{\hat{\phi}} \cdot \text{SE}_{\text{POI}},$$
+
+where $\text{Q-POI}$ is for quasi-Poisson.
+
+As a last step, you run the analysis of deviance for the quasi-Poisson model:
+
+```{r}
+anova(g.quasi, test = "F")
+```
+
+For example, the $F$-statistic for `region` is calculated as 
+
+```{r}
+F <- (21.597/2)/phi
+F
+```
+
+and the corresponding $P$-value is
+
+```{r}
+pf(F, 2, 49, lower.tail = FALSE)
+```
+---
+
+## Negative Binomial regression 
+
+You now focus on the use of yet another useful count regression model, that is the Negative Binomial regression model. The routine to fit a NB regression model is available in the package `MASS` and is called `glm.nb`, see https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/glm.nb.html
+
+```{r}
+library(MASS)
+g.nb <- glm.nb(n ~ region + sex + offset(log(expo)))
+summary(g.nb)
+```
+
+
+

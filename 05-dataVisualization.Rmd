@@ -1,0 +1,262 @@
+# Visualizing data in R {#data-viz}
+
+In this chapter you will learn the basics to build insightful graphics in R.
+
+## Basic plot instructions
+
+### Scatterplot
+Your starting point is the construction of a scatterplot. You'll work with the `Journals` data from the `AER` package.
+```{r}
+# load the 'Journals' data set in the AER package
+data("Journals")
+# scan the data
+head(Journals)
+names(Journals)
+# e.g. get variable 'price' 
+Journals$price
+summary(Journals$price)
+# focus on price of journal per citation
+Journals$citeprice <- Journals$price/Journals$citations
+```
+
+In the next block of code, we construct a scatterplot of the number of subscriptions versus the price per citation.
+```{r}
+with(Journals, plot(log(subs), log(citeprice)))
+with(Journals, rug(log(subs)))	# adds ticks, thus visualizing the marginal distributions of
+			# the variables, along one or both axes of an existing plot.		
+with(Journals, rug(log(citeprice), side = 2))
+# avoid "attach()" and "detach()"
+plot(log(subs) ~ log(citeprice), data = Journals)
+```
+
+R has many plotting options that allow you to flex a graph. For example, `pch` for the plotting character, `col` for the color of the plotting characters, `xlim` and `ylim` to adjust the limits on the x- and y-axis of the scatterplot. To add a legend, you can use the `legend()` function.
+
+```{r}
+plot(
+  log(citeprice) ~ log(subs),
+  data = Journals,
+  pch = 19,
+  col = "blue",
+  xlim = c(0, 8),
+  ylim = c(-7, 4),
+  main = "Library subscriptions"
+)
+rug(log(Journals$subs))
+rug(log(Journals$citeprice), side = 2)
+# subset data, look at journal entitled "Econometrica"
+journal <- "Econometrica"
+journal_info <- subset(Journals, title == journal)
+x.val <- log(journal_info$subs)
+y.val <- log(journal_info$citeprice)
+text(x.val, y.val, journal, pos = 2)
+legend("topright", "Individual observations", col = "blue", pch = 19)
+```
+
+You can even use your own images as plotting characters! In case you want to find out how you do this, just go to http://www.statisticstoproveanything.com/2013/09/using-custom-images-as-pch-values-in-r.html
+![](images/PlotCars.png)
+
+### Graphical parameters
+As briefly mentioned above, you have a lot of arguments to change the appearance of your plot. To see which ones you can adjust, go to the help file of `par`
+```{r}
+?par
+```
+
+Below are some illustrations that show which ones you can use. When you want to adjust something in your plot and can't immediately find it, just Google it and you will find lots of examples.
+
+```{r}
+x <- 1:10
+y <- exp(1:10)
+plot(x, y, type = "l", lwd = 3, lty = 2, col = "red")
+plot(x, y, bty = "n", cex = 3, cex.axis = 1.5, cex.lab = 2, las = 1, cex.main = 3, main = "Random plot")
+```
+
+When we want to adjust these graphical parameters globally, we can adjust them with the `par` function. Further, at the beginning of each session, it's always a good idea to save the initial parameter settings.
+```{r}
+Op = par(no.readonly = T) # Save initial parameter settings
+par()$mar                 # Check current setting
+par(mar = c(5, 5, 2, 2) + 0.1, mgp = c(4, 1, 0), cex = 1.5, cex.axis = 1.1, cex.lab = 1.25, las = 1, cex.main = 1.5)
+plot(x, y, main = "Random plot")
+par(Op)                   # Change back to default settings
+```
+
+When we want to have two plots side-by-side, we can adjust the `mfrow` parameter.
+```{r}
+par(mfrow = c(1, 2))
+plot(x, y)
+plot(x, sqrt(x))
+par(Op)
+```
+Alternatively, we can make use of the `layout` function.
+```{r}
+m <- rbind(c(1, 1, 2, 2),
+           c(4, 3, 3, 5))
+layout(m)
+layout.show(5)
+plot(x, y)
+plot(x, sqrt(x))
+plot(x, log(x))
+layout(1)
+```
+
+
+
+### Exporting the scatterplot
+
+It is often very useful to directly export your customized graph. Certainly when submitting the plot for a paper, we need to be able to export it to a file that they accept. Some of the basic formats that (base) R supports are BMP, JPEG, PNG, TIFF, PDF and PS  files.
+```{r}
+?png
+?grDevices
+```
+
+We can, for example, save a plot as pdf using the following code.
+```{r, eval=FALSE}
+path <- tempdir()
+graph.path <- file.path(path, "myfile.pdf")
+pdf(graph.path, height = 5, width = 6)
+	plot(log(citeprice)~log(subs), data = Journals, pch = 19, col = "blue", xlim =   
+	       c(0, 8), ylim = c(-7, 4),
+	main = "Library subscriptions")
+	rug(log(Journals$subs))
+	rug(log(Journals$citeprice),side=2)
+	journal <- "Econometrica"
+  journal_info <- subset(Journals, title==journal)
+  x.val <- log(journal_info$subs)
+  y.val <- log(journal_info$citeprice)
+  text(x.val, y.val, journal, pos=2)
+dev.off()
+```
+
+To save the plot as a PNG file, we use the `png` function. In this function, we can adjust the resolution of the plot by adjusting the `res` argument.
+```{r, eval = FALSE}
+graph.path <- tempfile(fileext = ".png")
+png(graph.path, height = 7.5e2 * 3, width = 3e3, res = 300)
+par(cex.axis = 1.25, cex.lab = 1.5, cex.main = 1.75, cex = 1.5)
+	plot(log(citeprice)~log(subs), data = Journals, pch = 19, col = "blue", xlim =   
+	       c(0, 8), ylim = c(-7, 4),
+	main = "Library subscriptions")
+	rug(log(Journals$subs))
+	rug(log(Journals$citeprice),side=2)
+	journal <- "Econometrica"
+  journal_info <- subset(Journals, title==journal)
+  x.val <- log(journal_info$subs)
+  y.val <- log(journal_info$citeprice)
+  text(x.val, y.val, journal, pos=2)
+dev.off()
+opendir(graph.path)
+```
+
+
+### The `curve()` function
+
+This function draws a curve corresponding to a function over the interval [from, to]. 
+
+```{r}
+curve(dnorm, from = -5, to = 5, col = "slategray", lwd = 3, main = "Density of the standard normal distribution")
+text(-5, 0.3, expression(f(x) == frac(1, sigma ~~ sqrt(2*pi)) ~~ e^{-frac((x - mu)^2, 2*sigma^2)}), adj = 0)
+?plotmath
+```
+
+---
+
+## More fancy plots 
+
+R has many dedicated packages for advanced plotting. You will work with two of them in this Section.
+
+### Creating graphics with `ggplot2` 
+
+`ggplot2` is a package created and maintained by prof. Hadley Wickham, it's aim is to Create Elegant Data Visualisations Using the Grammar of Graphics. Here is the basic explanation of how `ggplot2` works from [@rds2016].
+
+With `ggplot2`, you begin a plot with the function `ggplot()`. `ggplot()` creates a coordinate system that you can add layers to. The first argument of `ggplot()` is the dataset to use in the graph. So `ggplot(data = mpg)` or `ggplot(mpg)` creates an empty graph. 
+
+You complete your graph by adding one or more layers to `ggplot()`. The function `geom_point()` adds a layer of points to your plot, which creates a scatterplot. `ggplot2` comes with many geom functions that each add a different type of layer to a plot. 
+
+Each geom function in `ggplot2` takes a mapping argument. This defines how variables in your dataset are mapped to visual properties. The mapping argument is always paired with `aes()`, and the $x$ and $y$ arguments of `aes()` specify which variables to map to the $x$ and $y$ axes. `ggplot2` looks for the mapped variable in the data argument, in this case, `mpg`.
+
+
+```{r}
+library(ggplot2)
+
+# use default theme
+ggplot(data = mtcars, mapping = aes(x = hp, y = mpg)) +
+  geom_point(shape=1, alpha = 1/2)+
+  geom_smooth() 
+# shorter
+ggplot(mtcars, aes(x = hp, y = mpg)) +
+  geom_point(shape=1, alpha = 1/2)+
+  geom_smooth() 
+# use black and white lay-out
+ggplot(mtcars, aes(x = hp, y = mpg)) + theme_bw() +
+  geom_point(shape=1, alpha = 1/2)+ 
+  geom_smooth() 
+```
+
+You can add a third variable to a two dimensional scatterplot by mapping it to an aesthetic. An aesthetic is a visual property of the objects in your plot. Aesthetics include things like the size, the shape, or the color of your points. You can display a point in different ways by changing the values of its aesthetic properties. 
+
+```{r}
+ggplot(mtcars, aes(x = hp, y = mpg))+
+  geom_point(mapping = aes(color = gear))
+```
+
+Or you could have mapped this variable to the alpha aesthetic, which controls the transparency of the points, or the shape of the points.
+
+```{r}
+ggplot(mtcars, aes(x = hp, y = mpg))+
+  geom_point(mapping = aes(alpha = gear))
+
+ggplot(mtcars, aes(x = hp, y = mpg))+
+  geom_point(mapping = aes(size = gear))
+```
+
+You'll now construct a boxplot of `mpg` per `cyl` using `ggplot()`.
+```{r}
+ggplot(mtcars, aes(factor(cyl), mpg))+
+  geom_boxplot() + geom_jitter() + theme_bw()
+```
+Another way to code the same example
+```{r}
+p <- ggplot(mtcars, aes(factor(cyl), mpg))
+p + geom_boxplot() + geom_jitter() + theme_bw()
+```
+
+### Fancy correlation plots
+
+You use the package `corrplot` to visualize correlations between variables. For more examples, see [corrplot]( http://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html).
+
+```{r}
+library(corrplot)
+# get correlation matrix
+M <- cor(mtcars)
+str(M)
+M
+# visualize the correlation structure
+corrplot(M, method = "circle")
+corrplot(M, method = "square")
+corrplot(M, method = "color")
+corrplot(M, type = "upper")
+corrplot(M, type = "upper", method = "square")
+```
+
+---
+
+## Exercises
+
+```{block data viz, type="learncheck", purl=FALSE}
+**_Learning check_**
+```
+1. Use the Danish fire insurance losses. Plot the arrival of losses over time. Use `type= "l"` for a line plot, label the $x$ and $y$-axis, and give the plot a title using `main`.
+
+2. Do the same with instructions from `ggplot2`. Get inspiration from [R for Data Science](http://r4ds.had.co.nz/data-visualisation.html) and use `geom_line()` to create the line plot.
+
+3. Use the data set 'car_price.csv' available in the documentation.
+  + Import the data in R.
+  + Explore the data.
+  + Make a scatterplot of price versus income, use basic plotting instructions and use `ggplot2`.
+  + Add a smooth line to each of the plots (using `lines` to add a line to an existing plot and `lowess` to do scatterplot smoothing and using `geom_smooth` in the `ggplot2` grammar).
+  
+4. Use the `mpg` data set. Work through the following steps. The data contains observations collected by the US Environment Protection Agency on 38 models of car.
+  + Explore the data.
+  + Plot `displ`, a car's engine size, in litres on the $x$-axis and `hwy`, on the $y$-axis, that is the car's fuel efficiency on the highway, in miles per gallon (mpg). 
+  + Now do the same but use different colors for the points, based on the `class` variable in `mpg`. Add a smooth line.
+  
+```{block, type="learncheck", purl=FALSE}
+```

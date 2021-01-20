@@ -1,0 +1,138 @@
+# Working with probability distributions in R {#probs}
+
+In this Section you'll learn how to work with probability distributions in R. Before you start, it is important to know that for many standard distributions R has 4 crucial functions: 
+
+* Density: e.g. `dexp`, `dgamma`, `dlnorm`
+* Quantile: e.g. `qexp`, `qgamma`, `qlnorm`
+* Cdf: e.g. `pexp`, `pgamma`, `plnorm`
+* Simulation: e.g. `rexp`, `rgamma`, `rlnorm`
+
+The parameters of the distribution are then specified in the arguments of these functions. Below are some examples from Katrien's course on Loss Models at KU Leuven.
+
+## Discrete distributions
+
+### The binomial distribution
+
+```{r}
+nSim 	   <- 100
+p        <- 0.3
+n	       <- 6
+
+# generate 'nSim' obs. from Bin(n,p) distribution 
+data_binom <- rbinom(nSim, n, p)
+
+# calculate mean and variance
+mean(data_binom) # empirical mean
+var(data_binom)  # empirical variance
+
+n*p 		      # theoretical mean
+n*p*(1-p)	    # theoretical variance
+
+# visualize
+range <- seq(-1,n,1/1000)
+plot(ecdf(data_binom))   # ecdf
+lines(range,pbinom(range, n, p), col = 'red') # cdf
+
+par(mfrow=c(1,2))
+plot(0:n, dbinom(0:n, n, p), type = 'h') # pdf
+plot(prop.table(table(data_binom)))
+par(mfrow=c(1,1))
+```
+
+### The Poisson distribution
+
+```{r}
+nSim 	 <- 100
+lambda <- 1
+
+# generate 'nSim' observations from Poisson(\lambda) distribution
+data_pois <- rpois(nSim, lambda)
+
+# calculate mean and variance
+mean(data_pois) # empirical mean
+var(data_pois)  # empirical variance
+
+lambda	    # theoretical mean
+lambda	    # theoretical variance
+
+# visualize
+range  <- seq(0,8, 1/1000)
+plot(ecdf(data_pois))   # ecdf
+lines(range,ppois(range, lambda), col = 'red') # cdf
+
+par(mfrow=c(1,2))
+plot(0:8, dpois(0:8, lambda), type = 'h') # pdf
+plot(prop.table(table(data_pois)))
+par(mfrow=c(1,1))
+```
+
+---
+
+## Continuous distributions
+
+### The normal distribution
+
+```{r}
+# evaluate cdf of N(0,1) in 0
+pnorm(0, mean=0, sd=1)
+# or shorter
+pnorm(0, 0, 1)
+# 95% quantile of N(0,1) 
+qnorm(0.95, mean=0, sd=1)
+# a set of quantiles
+qnorm(c(0.025, 0.05, 0.5, 0.95, 0.975), 0, 1)
+# generate observations from N(0,1)
+x <- rnorm(10000, mean=10, sd=1)
+# visualize
+hist(x, probability=TRUE, nclass=55, col="pink")
+curve(dnorm(x, mean=10, sd=1), xlim=range(x), col="black",add=TRUE)
+```
+
+
+### The gamma distribution
+
+```{r}
+# check parametrization of gamma density in R
+? dgamma
+# grid of points to evaluate the gamma density
+x <- seq(from = 0, to = 20, by = 0.001)
+# choose a color palette
+colors <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+# shape and rate parameter combinations shown in the plot
+shape <- c(1, 2, 3)
+rate <- c(0.5, 0.5, 0.5)
+plot(x, dgamma(x, shape = shape[1], rate = rate[1]), type='l', xlab ='x', ylab='Gamma density', main='Effect of the shape parameter on the Gamma density')
+for(i in 2:length(shape)){
+    lines(x, dgamma(x, shape = shape[i], rate = rate[i]), col=colors[i])
+}
+# add a legend  
+legend("topright", paste("shape = ", shape, ", rate = ", rate, sep=""), col = colors, lty=1)
+```
+
+--- 
+
+## Exercises
+
+```{block prob_dist, purl=FALSE}
+**_Learning check_**
+```
+
+1. Generating random numbers, tossing coins. 
++ Set your seed to 1 and generate 10 random numbers (between 0 and 1) using `runif` and save these numbers in an object called `random_numbers`.
++ Using the function `ifelse` and the object `random_numbers` simulate coin tosses. Hint: if `random_numbers` is bigger than 0.5 then the result is head, otherwise it is tail.
++ Another way of generating random coin tosses is by using the `rbinom` function. Set the seed again to 1 and simulate with this function 10 coin tosses. 
+
+2. Simulate samples from a normal distribution. Imagine a population in which the average height is 1.7m with a standard deviation of 0.1. 
++ Using `rnorm` simulate the height of 100 people and save it in an object called `heights`.
++ To get an idea of the values in `heights` apply the function `summary` to it.
++ What is the probability that a person will be smaller or equal to 1.9m? Use `prnorm`.
++ What is the probability that a person will be taller or equal to 1.6m? Use `pnorm`.
+
+3. The waiting time (in minutes) at a doctor's clinic follows an exponential distribution with a rate parameter of 1/50. 
++ Use the function `rexp` to simulate the waiting time of 30 people at the doctor's office. 
++ What is the probability that a person will wait less than 10 minutes? Use `pexp`.
++ What is the waiting time average?
+
+```{block, purl=FALSE}
+```
+
