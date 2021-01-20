@@ -401,7 +401,7 @@ This is one of the most powerful things about the tidyverse. In fact, having a s
 <pre><code># A tibble: 1 x 2
    mean std_dev
   &lt;dbl&gt;   &lt;dbl&gt;
-1    NA      NA</code></pre>
+1 3458.   3808.</code></pre>
 </div>
 <div id="summarize-based-on-groupings-of-another-variable" class="section level3">
 <h3><span class="header-section-number">6.1.5</span> Summarize based on groupings of another variable</h3>
@@ -411,9 +411,9 @@ This is one of the most powerful things about the tidyverse. In fact, having a s
 <pre><code>        cut  price
 1      Fair 4358.8
 2      Good 3928.9
-3 Very Good 3981.9
-4   Premium 4584.3
-5     Ideal 3457.8</code></pre>
+3 Very Good 3981.6
+4   Premium 4584.8
+5     Ideal 3457.5</code></pre>
 <p>How can you do this with the pipe?</p>
 <div class="sourceCode" id="cb586"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb586-1"><a href="data-wrangling.html#cb586-1"></a>diamonds <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(cut) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarize</span>(<span class="dt">mean =</span> <span class="kw">mean</span>(price))</span></code></pre></div>
 <pre><code>`summarise()` ungrouping output (override with `.groups` argument)</code></pre>
@@ -423,8 +423,8 @@ This is one of the most powerful things about the tidyverse. In fact, having a s
 1 Fair      4359.
 2 Good      3929.
 3 Very Good   NA 
-4 Premium   4584.
-5 Ideal       NA </code></pre>
+4 Premium     NA 
+5 Ideal     3458.</code></pre>
 <p>Now you want to group by multiple variables.</p>
 <div class="sourceCode" id="cb589"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb589-1"><a href="data-wrangling.html#cb589-1"></a>diamonds <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(cut, color) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarize</span>(<span class="dt">price =</span> <span class="kw">mean</span>(price))</span></code></pre></div>
 <pre><code>`summarise()` regrouping output by &#39;cut&#39; (override with `.groups` argument)</code></pre>
@@ -452,8 +452,8 @@ This is one of the most powerful things about the tidyverse. In fact, having a s
 1 Fair      4359. 1.05 
 2 Good      3929. 0.849
 3 Very Good   NA  0.806
-4 Premium   4584. 0.892
-5 Ideal       NA  0.703</code></pre>
+4 Premium     NA  0.892
+5 Ideal     3458. 0.703</code></pre>
 <p>And finally, multiple metrics and multiple grouping variables.</p>
 <div class="sourceCode" id="cb595"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb595-1"><a href="data-wrangling.html#cb595-1"></a>diamonds <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">group_by</span>(cut, color) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">summarize</span>(<span class="dt">price =</span> <span class="kw">mean</span>(price), <span class="dt">carat =</span> <span class="kw">mean</span>(carat))</span></code></pre></div>
 <pre><code>`summarise()` regrouping output by &#39;cut&#39; (override with `.groups` argument)</code></pre>
@@ -611,12 +611,12 @@ Total: 3MB</code></pre>
 <pre><code>        cut  price
 1      Fair 4358.8
 2      Good 3928.9
-3 Very Good 3981.9
-4   Premium 4584.3
-5     Ideal 3457.8</code></pre>
+3 Very Good 3981.6
+4   Premium 4584.8
+5     Ideal 3457.5</code></pre>
 <div class="sourceCode" id="cb625"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb625-1"><a href="data-wrangling.html#cb625-1"></a><span class="kw">system.time</span>(<span class="kw">aggregate</span>(price <span class="op">~</span><span class="st"> </span>cut, diamonds, mean))</span></code></pre></div>
 <pre><code>   user  system elapsed 
-   0.03    0.00    0.03 </code></pre>
+   0.02    0.00    0.02 </code></pre>
 <div class="sourceCode" id="cb627"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb627-1"><a href="data-wrangling.html#cb627-1"></a><span class="co"># aggregation with data.table</span></span>
 <span id="cb627-2"><a href="data-wrangling.html#cb627-2"></a><span class="co"># will go faster thanks to indexing</span></span>
 <span id="cb627-3"><a href="data-wrangling.html#cb627-3"></a>diamonds_DT[ , <span class="kw">mean</span>(price), by=cut]</span></code></pre></div>
@@ -624,19 +624,19 @@ Total: 3MB</code></pre>
 1:      Fair 4358.8
 2:      Good 3928.9
 3: Very Good     NA
-4:   Premium 4584.3
-5:     Ideal     NA</code></pre>
+4:   Premium     NA
+5:     Ideal 3457.5</code></pre>
 <div class="sourceCode" id="cb629"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb629-1"><a href="data-wrangling.html#cb629-1"></a><span class="kw">system.time</span>(diamonds_DT[ , <span class="kw">mean</span>(price), <span class="dt">by=</span>cut])</span></code></pre></div>
 <pre><code>   user  system elapsed 
-   0.00    0.00    0.01 </code></pre>
+      0       0       0 </code></pre>
 <div class="sourceCode" id="cb631"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb631-1"><a href="data-wrangling.html#cb631-1"></a><span class="co"># give variable names in the create date.table</span></span>
 <span id="cb631-2"><a href="data-wrangling.html#cb631-2"></a>diamonds_DT[ , <span class="kw">list</span>(<span class="dt">price =</span> <span class="kw">mean</span>(price)), by=cut]</span></code></pre></div>
 <pre><code>         cut  price
 1:      Fair 4358.8
 2:      Good 3928.9
 3: Very Good     NA
-4:   Premium 4584.3
-5:     Ideal     NA</code></pre>
+4:   Premium     NA
+5:     Ideal 3457.5</code></pre>
 <div class="sourceCode" id="cb633"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb633-1"><a href="data-wrangling.html#cb633-1"></a><span class="co"># aggregate on multiple columns</span></span>
 <span id="cb633-2"><a href="data-wrangling.html#cb633-2"></a>diamonds_DT[ , <span class="kw">mean</span>(price), by=<span class="kw">list</span>(cut,color)]</span></code></pre></div>
 <pre><code>          cut color     V1
@@ -654,24 +654,24 @@ Total: 3MB</code></pre>
 12:      Good     H 4276.3
 13:      Good     I 5078.5
 14:      Good     J 4574.2
-15: Very Good     D     NA
+15: Very Good     D 3470.5
 16: Very Good     E 3214.7
-17: Very Good     F 3778.8
+17: Very Good     F     NA
 18: Very Good     G 3872.8
 19: Very Good     H 4535.4
 20: Very Good     I 5255.9
 21: Very Good     J 5103.5
 22:   Premium     D 3631.3
-23:   Premium     E 3538.9
-24:   Premium     F 4324.9
+23:   Premium     E     NA
+24:   Premium     F     NA
 25:   Premium     G 4500.7
 26:   Premium     H 5216.7
 27:   Premium     I 5946.2
 28:   Premium     J 6294.6
-29:     Ideal     D     NA
+29:     Ideal     D 2629.1
 30:     Ideal     E 2597.6
 31:     Ideal     F 3374.9
-32:     Ideal     G     NA
+32:     Ideal     G 3720.7
 33:     Ideal     H 3889.3
 34:     Ideal     I 4452.0
 35:     Ideal     J 4918.2
@@ -682,15 +682,15 @@ Total: 3MB</code></pre>
 1:      Fair 4358.8 1.04614
 2:      Good 3928.9 0.84918
 3: Very Good     NA 0.80638
-4:   Premium 4584.3 0.89195
-5:     Ideal     NA 0.70284</code></pre>
+4:   Premium     NA 0.89195
+5:     Ideal 3457.5 0.70284</code></pre>
 <div class="sourceCode" id="cb637"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb637-1"><a href="data-wrangling.html#cb637-1"></a>diamonds_DT[ , <span class="kw">list</span>(<span class="dt">price =</span> <span class="kw">mean</span>(price), <span class="dt">carat =</span> <span class="kw">mean</span>(carat), <span class="dt">caratSum =</span> <span class="kw">sum</span>(carat)), by=cut]</span></code></pre></div>
 <pre><code>         cut  price   carat caratSum
 1:      Fair 4358.8 1.04614   1684.3
 2:      Good 3928.9 0.84918   4166.1
 3: Very Good     NA 0.80638   9742.7
-4:   Premium 4584.3 0.89195  12301.0
-5:     Ideal     NA 0.70284  15146.8</code></pre>
+4:   Premium     NA 0.89195  12301.0
+5:     Ideal 3457.5 0.70284  15146.8</code></pre>
 <div class="sourceCode" id="cb639"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb639-1"><a href="data-wrangling.html#cb639-1"></a><span class="co"># multiple metrics and multiple grouping variables</span></span>
 <span id="cb639-2"><a href="data-wrangling.html#cb639-2"></a>diamonds_DT[ , <span class="kw">list</span>(<span class="dt">price =</span> <span class="kw">mean</span>(price), <span class="dt">carat =</span> <span class="kw">mean</span>(carat)), by =<span class="st"> </span><span class="kw">list</span>(cut, color)]</span></code></pre></div>
 <pre><code>          cut color  price   carat
@@ -708,24 +708,24 @@ Total: 3MB</code></pre>
 12:      Good     H 4276.3 0.91473
 13:      Good     I 5078.5 1.05722
 14:      Good     J 4574.2 1.09954
-15: Very Good     D     NA 0.69642
+15: Very Good     D 3470.5 0.69642
 16: Very Good     E 3214.7 0.67632
-17: Very Good     F 3778.8 0.74096
+17: Very Good     F     NA 0.74096
 18: Very Good     G 3872.8 0.76680
 19: Very Good     H 4535.4 0.91595
 20: Very Good     I 5255.9 1.04695
 21: Very Good     J 5103.5 1.13322
 22:   Premium     D 3631.3 0.72155
-23:   Premium     E 3538.9 0.71774
-24:   Premium     F 4324.9 0.82704
+23:   Premium     E     NA 0.71774
+24:   Premium     F     NA 0.82704
 25:   Premium     G 4500.7 0.84149
 26:   Premium     H 5216.7 1.01645
 27:   Premium     I 5946.2 1.14494
 28:   Premium     J 6294.6 1.29309
-29:     Ideal     D     NA 0.56577
+29:     Ideal     D 2629.1 0.56577
 30:     Ideal     E 2597.6 0.57840
 31:     Ideal     F 3374.9 0.65583
-32:     Ideal     G     NA 0.70071
+32:     Ideal     G 3720.7 0.70071
 33:     Ideal     H 3889.3 0.79952
 34:     Ideal     I 4452.0 0.91303
 35:     Ideal     J 4918.2 1.06359
@@ -741,8 +741,8 @@ Total: 3MB</code></pre>
 1:      Fair 4358.8 1.04614
 2:      Good 3928.9 0.84918
 3: Very Good     NA 0.80638
-4:   Premium 4584.3 0.89195
-5:     Ideal     NA 0.70284</code></pre>
+4:   Premium     NA 0.89195
+5:     Ideal 3457.5 0.70284</code></pre>
 <div class="sourceCode" id="cb643"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb643-1"><a href="data-wrangling.html#cb643-1"></a><span class="kw">setkey</span>(diamonds_DT, cut)</span>
 <span id="cb643-2"><a href="data-wrangling.html#cb643-2"></a>dmerge &lt;-<span class="st"> </span>diamonds_DT[d]</span>
 <span id="cb643-3"><a href="data-wrangling.html#cb643-3"></a>dmerge</span></code></pre></div>
@@ -753,11 +753,11 @@ Total: 3MB</code></pre>
     4:  1.00  Fair     D     SI2  69.3    58  2974 5.96 5.87 4.10  4358.8
     5:  1.01  Fair     D     SI2  64.6    56  3003 6.31 6.24 4.05  4358.8
    ---                                                                   
-53936:  0.71 Ideal     J     SI1  60.6    57  2700 5.78 5.83 3.52      NA
-53937:  0.81 Ideal     J     VS2  62.1    56  2708 5.92 5.97 3.69      NA
-53938:  0.84 Ideal     J     VS2  61.1    57  2709 6.09 6.12 3.73      NA
-53939:  0.82 Ideal     J     VS2  61.6    56  2741 6.00 6.04 3.71      NA
-53940:  0.83 Ideal     J     VS2  62.3    55  2742 6.01 6.03 3.75      NA
+53936:  0.71 Ideal     J     SI1  60.6    57  2700 5.78 5.83 3.52  3457.5
+53937:  0.81 Ideal     J     VS2  62.1    56  2708 5.92 5.97 3.69  3457.5
+53938:  0.84 Ideal     J     VS2  61.1    57  2709 6.09 6.12 3.73  3457.5
+53939:  0.82 Ideal     J     VS2  61.6    56  2741 6.00 6.04 3.71  3457.5
+53940:  0.83 Ideal     J     VS2  62.3    55  2742 6.01 6.03 3.75  3457.5
        i.carat
     1: 1.04614
     2: 1.04614

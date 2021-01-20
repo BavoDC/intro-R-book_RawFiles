@@ -801,7 +801,7 @@ six  2      -none- character</code></pre>
 <span id="cb202-4"><a href="objects-data-types.html#cb202-4"></a>mylist &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">sample =</span> <span class="kw">rnorm</span>(<span class="dv">5</span>), <span class="dt">family =</span> <span class="st">&quot;normal distribution&quot;</span>, <span class="dt">parameters =</span> <span class="kw">list</span>(<span class="dt">mean =</span> <span class="dv">0</span>, <span class="dt">sd =</span> <span class="dv">1</span>))</span>
 <span id="cb202-5"><a href="objects-data-types.html#cb202-5"></a>mylist</span></code></pre></div>
 <pre><code>$sample
-[1] -1.8253  0.1316 -1.3861  0.1136 -0.9253
+[1]  1.1305  1.7639 -0.8482 -0.6672 -1.4533
 
 $family
 [1] &quot;normal distribution&quot;
@@ -814,7 +814,7 @@ $parameters$sd
 [1] 1</code></pre>
 <div class="sourceCode" id="cb204"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb204-1"><a href="objects-data-types.html#cb204-1"></a><span class="kw">str</span>(mylist)</span></code></pre></div>
 <pre><code>List of 3
- $ sample    : num [1:5] -1.825 0.132 -1.386 0.114 -0.925
+ $ sample    : num [1:5] 1.13 1.764 -0.848 -0.667 -1.453
  $ family    : chr &quot;normal distribution&quot;
  $ parameters:List of 2
   ..$ mean: num 0
@@ -822,12 +822,12 @@ $parameters$sd
 <p>The objects stored on the list are known as its components <span class="citation">(Venables, Smith, and R Core Team 2020)</span> and to access these components, we either use a numerical value indicating the position in the list or the name of the component (only possible when it has been given a name of course).</p>
 <div class="sourceCode" id="cb206"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb206-1"><a href="objects-data-types.html#cb206-1"></a><span class="co"># now check</span></span>
 <span id="cb206-2"><a href="objects-data-types.html#cb206-2"></a>mylist[[<span class="dv">1</span>]]</span></code></pre></div>
-<pre><code>[1] -1.8253  0.1316 -1.3861  0.1136 -0.9253</code></pre>
+<pre><code>[1]  1.1305  1.7639 -0.8482 -0.6672 -1.4533</code></pre>
 <div class="sourceCode" id="cb208"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb208-1"><a href="objects-data-types.html#cb208-1"></a>mylist[[<span class="st">&quot;sample&quot;</span>]]</span></code></pre></div>
-<pre><code>[1] -1.8253  0.1316 -1.3861  0.1136 -0.9253</code></pre>
+<pre><code>[1]  1.1305  1.7639 -0.8482 -0.6672 -1.4533</code></pre>
 <p>If the components have names, we can also access them using the <code>$</code> operator in the following way.</p>
 <div class="sourceCode" id="cb210"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb210-1"><a href="objects-data-types.html#cb210-1"></a>mylist<span class="op">$</span>sample</span></code></pre></div>
-<pre><code>[1] -1.8253  0.1316 -1.3861  0.1136 -0.9253</code></pre>
+<pre><code>[1]  1.1305  1.7639 -0.8482 -0.6672 -1.4533</code></pre>
 <div class="sourceCode" id="cb212"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb212-1"><a href="objects-data-types.html#cb212-1"></a>mylist<span class="op">$</span>parameter</span></code></pre></div>
 <pre><code>$mean
 [1] 0
@@ -838,7 +838,7 @@ $sd
 <pre><code>[1] 0</code></pre>
 <p>Moreover, we can even access the elements of the component in the same way as we did before.</p>
 <div class="sourceCode" id="cb216"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb216-1"><a href="objects-data-types.html#cb216-1"></a>mylist[[<span class="dv">1</span>]][<span class="dv">2</span><span class="op">:</span><span class="dv">4</span>]</span></code></pre></div>
-<pre><code>[1]  0.1316 -1.3861  0.1136</code></pre>
+<pre><code>[1]  1.7639 -0.8482 -0.6672</code></pre>
 <p>To access lists within lists, we use the following code</p>
 <div class="sourceCode" id="cb218"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb218-1"><a href="objects-data-types.html#cb218-1"></a>Dream =<span class="st"> </span><span class="kw">list</span>(<span class="dt">WithinADream =</span> <span class="kw">list</span>(<span class="dt">WithinAnotherDream =</span> <span class="st">&quot;DieTraumdeutung&quot;</span>))</span>
 <span id="cb218-2"><a href="objects-data-types.html#cb218-2"></a>Dream<span class="op">$</span>WithinADream<span class="op">$</span>WithinAnotherDream</span></code></pre></div>
@@ -950,7 +950,7 @@ Volvo 142E     21.4   4 121.0 109 4.11 2.780 18.6  1  1    4    2</code></pre>
 
     x, z</code></pre>
 <div class="sourceCode" id="cb261"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb261-1"><a href="objects-data-types.html#cb261-1"></a><span class="kw">mean</span>(x)</span></code></pre></div>
-<pre><code>[1] -0.08733</code></pre>
+<pre><code>[1] 0.002858</code></pre>
 <div class="sourceCode" id="cb263"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb263-1"><a href="objects-data-types.html#cb263-1"></a><span class="kw">mean</span>(Df<span class="op">$</span>x)</span></code></pre></div>
 <pre><code>[1] 10</code></pre>
 <div class="sourceCode" id="cb265"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb265-1"><a href="objects-data-types.html#cb265-1"></a><span class="kw">mean</span>(z)</span></code></pre></div>

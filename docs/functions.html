@@ -807,11 +807,11 @@ NULL</code></pre>
 <span id="cb778-7"><a href="functions.html#cb778-7"></a>}</span>
 <span id="cb778-8"><a href="functions.html#cb778-8"></a><span class="kw">f</span>()</span></code></pre></div>
 <pre><code>
-environment:&lt;environment: 0x000001b6707ed690&gt;</code></pre>
+environment:&lt;environment: 0x0000020c93e948e0&gt;</code></pre>
 <pre><code>[1] 2</code></pre>
 <div class="sourceCode" id="cb781"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb781-1"><a href="functions.html#cb781-1"></a><span class="kw">f</span>()</span></code></pre></div>
 <pre><code>
-environment:&lt;environment: 0x000001b67072a738&gt;</code></pre>
+environment:&lt;environment: 0x0000020c93e47350&gt;</code></pre>
 <pre><code>[1] 2</code></pre>
 <p>In this example we see that a new (execution) environment is created every time the function is called. Due to this fresh start principle, R makes sure that results are not contaminated due to previous function calls and that we get the same result when we run the function with the same arguments.</p>
 <div class="sourceCode" id="cb784"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb784-1"><a href="functions.html#cb784-1"></a><span class="kw">rm</span>(x, a)</span>
@@ -906,108 +906,108 @@ environment:&lt;environment: 0x000001b67072a738&gt;</code></pre>
 <span id="cb796-13"><a href="functions.html#cb796-13"></a><span class="kw">lapply</span>(ModelFits, coef)</span></code></pre></div>
 <pre><code>[[1]]
 (Intercept)          X1 
-    0.84345     0.63084 
+    0.24627     0.75615 
 
 [[2]]
 (Intercept)          X1          X2 
-    0.75681     0.77739     0.78272 
+    0.53405     0.68925     0.53393 
 
 [[3]]
 (Intercept)          X1          X2          X3 
-   0.748583    0.775631    0.805690    0.053349 
+    0.55575     0.40982     0.65191     0.56139 
 
 [[4]]
 (Intercept)          X1          X2          X3          X4 
-    0.74404     0.73536     0.82137     0.11881     0.66801 </code></pre>
+    0.56549     0.69207     0.51405     0.26160     0.60735 </code></pre>
 <div class="sourceCode" id="cb798"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb798-1"><a href="functions.html#cb798-1"></a><span class="kw">lapply</span>(ModelFits, sigma)</span></code></pre></div>
 <pre><code>[[1]]
-[1] 1.0227
+[1] 1.3588
 
 [[2]]
-[1] 0.65374
+[1] 1.2094
 
 [[3]]
-[1] 0.70346
+[1] 1.1741
 
 [[4]]
-[1] 0.090626</code></pre>
+[1] 0.09184</code></pre>
 <p>If you look at the help file of the <code>lapply</code> function, you will notice that this also makes use of the ellipsis <code>...</code> argument and hence, we can pass arguments to the function <code>FUN</code>.</p>
 <div class="sourceCode" id="cb800"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb800-1"><a href="functions.html#cb800-1"></a><span class="kw">lapply</span>(ModelFits, predict, <span class="dt">interval =</span> <span class="st">&quot;confidence&quot;</span>)</span></code></pre></div>
 <pre><code>[[1]]
-         fit       lwr     upr
-1   2.244297  0.648788 3.83981
-2   0.089189 -0.764826 0.94320
-3   1.241023  0.308341 2.17371
-4   0.699059 -0.053475 1.45159
-5   0.447546 -0.306637 1.20173
-6  -1.248854 -2.969174 0.47147
-7   0.783369  0.017984 1.54875
-8   0.806808  0.036709 1.57691
-9  -0.236956 -1.254721 0.78081
-10  0.976298  0.158447 1.79415
+        fit      lwr     upr
+1  -0.25841 -1.45855 0.94174
+2   1.48189 -0.47391 3.43768
+3  -1.43837 -3.92390 1.04716
+4   0.25196 -0.73908 1.24299
+5   0.54358 -0.52956 1.61672
+6   0.02281 -1.01113 1.05675
+7   0.73687 -0.46180 1.93554
+8   0.04378 -0.98240 1.06996
+9   0.23757 -0.75334 1.22848
+10  0.78031 -0.45251 2.01314
 
 [[2]]
-        fit      lwr      upr
-1   0.94418 -0.41421  2.30258
-2  -0.10096 -0.67493  0.47302
-3   1.58427  0.93147  2.23707
-4   2.04596  1.02135  3.07057
-5   0.95253  0.35440  1.55067
-6  -1.84334 -3.03863 -0.64804
-7   0.81988  0.31758  1.32217
-8   0.38389 -0.19433  0.96210
-9  -0.76609 -1.52077 -0.01141
-10  1.78145  1.02277  2.54013
+        fit      lwr     upr
+1  -0.73429 -2.00250 0.53393
+2   2.39866  0.23009 4.56723
+3  -0.98511 -3.33386 1.36363
+4  -1.19726 -3.34381 0.94929
+5   0.72918 -0.28147 1.73983
+6   0.61460 -0.61925 1.84844
+7   0.59655 -0.51355 1.70665
+8   0.33777 -0.67864 1.35418
+9   0.59669 -0.42829 1.62167
+10  0.04521 -1.45179 1.54221
 
 [[3]]
-         fit      lwr      upr
-1   0.925488 -0.60225  2.45323
-2  -0.028478 -1.07786  1.02090
-3   1.633161  0.71466  2.55166
-4   1.976190  0.58205  3.37033
-5   0.950719  0.28437  1.61707
-6  -1.821719 -3.17564 -0.46780
-7   0.803894  0.21524  1.39255
-8   0.383060 -0.26086  1.02698
-9  -0.848212 -2.11134  0.41491
-10  1.827675  0.82997  2.82538
+        fit       lwr     upr
+1  -1.00645 -2.397046 0.38415
+2   2.22602  0.019034 4.43301
+3  -0.97028 -3.329953 1.38940
+4  -0.92906 -3.154274 1.29616
+5   1.19403 -0.197737 2.58580
+6   0.87573 -0.474200 2.22566
+7   0.52571 -0.598860 1.65028
+8  -0.62319 -2.840282 1.59389
+9   1.31519 -0.480728 3.11110
+10 -0.20571 -1.794928 1.38350
 
 [[4]]
-        fit      lwr       upr
-1   1.00807  0.80100  1.215143
-2  -0.17467 -0.31808 -0.031255
-3   0.87316  0.71143  1.034898
-4   1.54959  1.35217  1.747011
-5   1.94810  1.78510  2.111111
-6  -2.05763 -2.24366 -1.871593
-7   0.10041 -0.02417  0.224987
-8   0.71901  0.62059  0.817426
-9  -0.66043 -0.83329 -0.487580
-10  2.49616  2.33332  2.658995</code></pre>
+         fit       lwr       upr
+1  -2.883295 -3.075433 -2.691158
+2   2.757025  2.570474  2.943575
+3   0.258924  0.040215  0.477633
+4  -0.216281 -0.408317 -0.024245
+5   0.329663  0.194976  0.464350
+6  -0.060252 -0.195305  0.074801
+7   1.373749  1.257944  1.489555
+8  -0.621892 -0.804081 -0.439702
+9   1.488533  1.340266  1.636801
+10 -0.024186 -0.155632  0.107260</code></pre>
 <p>If we would rather have the results returned as a vector, matrix or array, we can make use of the <code>sapply</code> function.</p>
 <div class="sourceCode" id="cb802"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb802-1"><a href="functions.html#cb802-1"></a><span class="kw">sapply</span>(ModelFits, sigma)</span></code></pre></div>
-<pre><code>[1] 1.022675 0.653739 0.703462 0.090626</code></pre>
+<pre><code>[1] 1.35885 1.20943 1.17410 0.09184</code></pre>
 <p>Another advantage of using <code>sapply</code> is that it will, by default, return a named object when the input <code>X</code> has a <code>names</code> attribute.</p>
 <div class="sourceCode" id="cb804"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb804-1"><a href="functions.html#cb804-1"></a><span class="kw">names</span>(ModelFits) &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&quot;Model&quot;</span>, <span class="kw">seq_along</span>(ModelFits))</span>
 <span id="cb804-2"><a href="functions.html#cb804-2"></a><span class="kw">attributes</span>(ModelFits)</span></code></pre></div>
 <pre><code>$names
 [1] &quot;Model1&quot; &quot;Model2&quot; &quot;Model3&quot; &quot;Model4&quot;</code></pre>
 <div class="sourceCode" id="cb806"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb806-1"><a href="functions.html#cb806-1"></a><span class="kw">sapply</span>(ModelFits, sigma)</span></code></pre></div>
-<pre><code>  Model1   Model2   Model3   Model4 
-1.022675 0.653739 0.703462 0.090626 </code></pre>
+<pre><code> Model1  Model2  Model3  Model4 
+1.35885 1.20943 1.17410 0.09184 </code></pre>
 <p>This default behavior of simplifying the output can be changed by setting the argument <code>simplify = FALSE</code>.</p>
 <div class="sourceCode" id="cb808"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb808-1"><a href="functions.html#cb808-1"></a><span class="kw">sapply</span>(ModelFits, sigma, <span class="dt">simplify =</span> F)</span></code></pre></div>
 <pre><code>$Model1
-[1] 1.0227
+[1] 1.3588
 
 $Model2
-[1] 0.65374
+[1] 1.2094
 
 $Model3
-[1] 0.70346
+[1] 1.1741
 
 $Model4
-[1] 0.090626</code></pre>
+[1] 0.09184</code></pre>
 <p>Another very famous member of this family is the <code>apply</code> function and is meant for two- or higher-dimensional objects.</p>
 <ul>
 <li>It must be applied on an array and is also applicable to a matrix and a data.frame.</li>
@@ -1063,16 +1063,16 @@ M  6500  7500</code></pre>
 <span id="cb826-2"><a href="functions.html#cb826-2"></a>x   &lt;-<span class="st"> </span><span class="kw">rpois</span>(<span class="fl">1e3</span>, <span class="dv">5</span>)</span>
 <span id="cb826-3"><a href="functions.html#cb826-3"></a><span class="kw">lapply</span>(Fns, <span class="cf">function</span>(f) <span class="kw">f</span>(x))</span></code></pre></div>
 <pre><code>[[1]]
-[1] 4.99
+[1] 4.973
 
 [[2]]
-[1] 2.2608
+[1] 2.2368
 
 [[3]]
 [1] 5
 
 [[4]]
-[1] 4</code></pre>
+[1] 3</code></pre>
 <p>This example again shows how flexible and awesome R is!</p>
 <!-- Add part on parallel programming -->
 <hr />

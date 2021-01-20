@@ -7,7 +7,8 @@ setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
 # Compile the book (directory: docs)
 bookdown::render_book('index.Rmd', 'bookdown::gitbook')
-file.create('docs/.nojekyll')
+if(!file.exists('docs/.nojekyll'))
+  file.create('docs/.nojekyll')
 
 # Create R scripts (directory: docs/scripts)
 source("purl.R")
