@@ -1,0 +1,3717 @@
+---
+title: 'Data science in insurance: an R intro'
+author: "Chester Ismay and Albert Y. Kim and Katrien Antonio and Bavo DC Campo"
+date: '`r Sys.Date()`'
+site: bookdown::bookdown_site
+bibliography:
+- bib/books.bib
+- bib/packages.bib
+- bib/articles.bib
+output:
+  bookdown::gitbook:
+    css: style.css
+    includes:
+      in_header: header.html
+  bookdown::pdf_book:
+    keep_tex: yes
+description: An open-source and fully-reproducible electronic textbook introducing
+  the use of R to actuarial students and professionals.
+documentclass: book
+link-citations: no
+biblio-style: apalike
+---
+
+
+```{r, include=FALSE}
+
+# require(bookdown)
+# render_book('index.Rmd', 'bookdown::gitbook')
+
+# Set output options
+options(width = 80, digits = 4, bookdown.clean_book = TRUE)
+knitr::opts_chunk$set(
+  tidy = FALSE,
+  #out.width='\\textwidth',
+  fig.width = 6, fig.height = 4,
+  fig.align = "center",
+  comment = NA
+)
+
+# Packages needed for following code in book
+needed_pkgs <- c(
+  # Data packages:
+  "ISLR",
+  # Used packages:
+  "ggplot2", "tibble", "tidyr", "dplyr", "readr", "dygraphs", "rmarkdown",
+  "knitr", "mosaic", "broom", "remotes", "forcats", "plotly", "moderndive",
+  "janitor", "infer", "sas7bdat", "readxl", "AER", "corrplot", "car", "data.table",
+  # Internally used packages:
+  "devtools", "webshot", "tufte", "mvtnorm", "stringr", "gridExtra"
+)
+new_pkgs <- needed_pkgs[!(needed_pkgs %in% installed.packages())]
+if(length(new_pkgs)) {
+  install.packages(new_pkgs, repos = "http://cran.rstudio.com")
+}
+
+
+# Automatically create a bib database for R packages
+knitr::write_bib(
+  c(.packages(), "bookdown", "knitr", "rmarkdown", "nycflights13", "devtools",
+    "ggplot2", "webshot", "dygraphs", "tufte", "okcupiddata", "mosaic", "dplyr",
+    "ggplot2movies", "fivethirtyeight", "tibble", "readr", "tidyr"),
+  "bib/packages.bib"
+)
+
+# Add all simulation results here
+dir.create("rds")
+
+dir.create("docs/scripts")
+
+
+
+# Add all knitr::purl()'ed chapter R scripts here
+
+#bookdown::render_book('index.Rmd', 'bookdown::gitbook')
+
+# purl R scripts. For some reason this needs to be run manually:
+#if(FALSE){
+#  # Note order matters here:
+#  chapter_titles <- c("objects-data-types", "started-with-data")
+#  chapter_numbers <- stringr::str_pad(2:(length(chapter_titles) + 1), 2, "left", pad = "0")
+#  for(i in 1:length(chapter_numbers)){
+#    Rmd_file <- stringr::str_c(chapter_numbers[i], "-", chapter_titles[i], ".Rmd")
+#    R_file <- stringr::str_c("docs/scripts/", chapter_numbers[i], "-", chapter_titles[i], ".R")
+#    knitr::purl(Rmd_file, R_file)
+#  }
+#  file.exists("my_index_Arcturus.Rmd")
+#  knitr::purl("my_index_Arcturus.Rmd")
+#}
+
+```
+
+
+
+
+<!--chapter:end:index.Rmd-->
+
+# Introduction {#index}
+
+This book assumes no prerequisites: no algebra, no calculus, and no prior programming/coding experience. This is intended to be a gentle introduction to the practice of analyzing data and answering questions using data the way data scientists, statisticians, data journalists, and other researchers would. Our inspiration is the open source ModernDive book [@moderndive2018], with many tweaks, additions and changes by Katrien Antonio and Bavo DC Campo. This text book is primarily written for actuarial students as well as practitioners, but is of course not limited to the latter group.
+
+* We get started with R in Chapter \@ref(getting-started): R vs RStudio, coding in R, installing and loading R packages, the references used in this book.
+* Thereafter, we look at different types of data and objects in R, including vectors, matrices, data frames and lists in Chapter \@ref(objects-data-types).
+* We get started with data in Chapter \@ref(started-with-data).
+* Data visualisation is the focus of Chapter \@ref(data-viz).
+* More on data wrangling in Chapter \@ref(data-wrangling).
+* As probability distributions are of special importance to actuaries, these are discussed in Chapter \@ref(probs).
+* Using and writing functions is the topic of Chapter \@ref(functions).
+* Optimization tools help to optimize non straightforward likelihoods as discussed in Chapter \@ref(optimization).
+* First examples of model building focus on linear and generalized linear models in Chapters \@ref(lms) and \@ref(glms)
+* References follow in \@ref(biblio).
+
+
+## Learning outcomes {#subsec:learning-goals}
+
+By the end of this book, you should have mastered the following concepts
+
+1. How R can be used as an environment for data handling, visualization, analysis and programming.
+1. How to use R to to import/export data, to explore and manipulate data, to create insightful graphics and to write functions.
+1. How to find help in the 'R community', including finding examples of coding, books, support.
+1. How to perform simple tasks with R and how to look for more advanced tasks, further learning with specific packages.
+1. How to answer actuarial questions related to pricing and reserving.
+1. How to effectively create "data stories" using these tools.
+
+
+This book will help you develop your "data science toolbox", including tools such as data visualization, data formatting, data wrangling, and data modeling using regression models.
+
+---
+
+## Data/science pipeline {#subsec:pipeline}
+
+Within the data analysis field there are many sub-fields that we will discuss throughout this book (though not necessarily in this order):
+
+- data collection
+- data wrangling
+- data visualization
+- data modeling
+- interpretation of results
+- data communication/storytelling
+
+These sub-fields are summarized in what Grolemund and Wickham term the "data/science pipeline" in Figure \@ref(fig:pipeline-figure).
+
+```{r pipeline-figure, echo=FALSE, fig.align='center', fig.cap="Data/Science Pipeline"}
+knitr::include_graphics("images/tidy1.png")
+```
+
+---
+
+## Inspirations and references
+
+In essence, this book combines my own research papers (Katrien Antonio) and course notes with many useful quotes and examples from my favourite R books listed below.
+
+This book is very much inspired by the following books or courses:
+
+- "Mathematical Statistics with Resampling and R" [@hester2011],
+- "OpenIntro: Intro Stat with Randomization and Simulation" [@isrs2014], and
+- "R for Data Science" [@rds2016],
+- "Moderndive" [@moderndive2018],
+- Jared Lander's "R for everyone" [@lander2017]
+- "Applied Econometrics with R" [@AER2008]
+- "An Introduction to Statistical Learning" [@ISL2017]
+- all the work of Michael Clark, see [Michael Clark's website](http://m-clark.github.io/cv.html)
+- many, many courses on the [DataCamp](www.datacamp.com) platform, including Katrien Antonio and Roel Verbelen's [Valuation of Life Insurance Products in R](https://www.datacamp.com/courses/2333).
+
+
+---
+
+## About this book {#sec:about-book}
+
+This book was written using RStudio's [bookdown](https://bookdown.org/) package by Yihui Xie [@R-bookdown]. This package simplifies the publishing of books by having all content written in [R Markdown](http://rmarkdown.rstudio.com/html_document_format.html). The bookdown/R Markdown source code for all versions of ModernDive is available on GitHub.
+
+Could this be a new paradigm for textbooks? Instead of the traditional model of textbook companies publishing updated *editions* of the textbook every few years, we apply a software design influenced model of publishing more easily updated *versions*.  We can then leverage open-source communities of instructors and developers for ideas, tools, resources, and feedback. As such, we welcome your pull requests.
+
+Finally, feel free to modify the book as you wish for your own needs, but please list the authors at the top of `index.Rmd` as "Chester Ismay, Albert Y. Kim, and YOU!" **So, that is exactly what Katrien Antonio did!**
+
+---
+
+<!--chapter:end:01-introduction.Rmd-->
+
+# Getting started in R {#getting-started}
+
+Before we can start exploring data in R, there are some key concepts to understand first:
+
+  1. What are R and RStudio?
+  1. How do I code in R?
+  1. What are R packages?
+
+Much of this chapter is based on two sources, which you should feel free to use as references, if you are looking for additional details:
+
+  1. Ismay's [Getting used to R, RStudio, and R Markdown](http://ismayc.github.io/rbasics-book) [@usedtor2016], which includes video screen recordings that you can follow along and pause as you learn.
+  1. DataCamp's online tutorials. DataCamp is a browser-based interactive platform for learning data science and their tutorials will help facilitate your learning of the above concepts (and other topics in this book). Go to [DataCamp](https://www.datacamp.com/) and create an account before continuing.
+
+
+---
+
+## Some history
+
+R is a dialect of the S language (developed by John Chambers at Bell Labs in the 70s), namely 'Gnu-S'. R was written by Robert Gentleman and Ross Ihaka (while being at the University of Auckland) in 1993.
+
+```{R developers-figure, echo=FALSE, fig.align='center'}
+knitr::include_graphics("images/NYTimesR2009.jpg")
+```
+
+
+```{r, echo = FALSE}
+page_with_download_url = "https://cran.rstudio.com/bin/windows/base/"
+page <- readLines(page_with_download_url, warn = FALSE)
+filename <- na.omit(stringr::str_extract(page, "R-[0-9.]+.+-win\\.exe"))[1]
+latest_R_version <- stringr::str_extract(filename, "[0-9.]+")
+```
+
+The [@AER2008] book sketches the history of R, in Sections 1.5 and 1.6. The R source code was first released under the GNU General Public License (GPL) in 1995. Since mid-1997, there has been the R Development Core Team, currently comprising 20 members. In 1998, the Comprehensive R Archive Network [CRAN](http://CRAN.R-project.org/) was established, a family of mirror sites around the world that store identical, up-to-date versions of code and documentation for R. The first official release, R version 1.0.0, dates to 2000-02-29. Currently, version `r latest_R_version` is available.
+
+R is open source, i.e. [GNU General Public License](http://en.wikipedia.org/wiki/GNU_General_Public_License). The R environment (see [About R](http://www.r-project.org/about.html)) is 'an integrated suite of software facilities for data manipulation, calculation and graphical display'.
+
+## What are R and RStudio?
+
+Throughout this book, we will assume that you are using R via RStudio. First time users often confuse the two. At its simplest:
+
+* R is like a car's engine
+* RStudio is like a car's dashboard
+
+R: Engine            |  RStudio: Dashboard
+:-------------------------:|:-------------------------:
+<img src="images/engine.jpg" alt="Drawing" style="height: 200px;"/>  |  <img src="images/dashboard.jpg" alt="Drawing" style="height: 200px;"/>
+
+More precisely, R is a programming language that runs computations while RStudio is an *integrated development environment (IDE)* that provides an interface by adding many convenient features and tools. In the same way that a speedometer, rear view mirrors, and a navigation system makes driving much easier, using RStudio's interface makes using R much easier as well.
+
+Optional: For a more in-depth discussion on the difference between R and RStudio IDE, watch this [DataCamp video (2m52s)](https://campus.datacamp.com/courses/working-with-the-rstudio-ide-part-1/orientation?ex=1).
+
+### Installing R and RStudio
+
+You will first need to download and install both R and RStudio (Desktop version) on your computer.
+
+  1. [Download and install R](https://cran.r-project.org/).
+  + Note: You must do this first.
+  + Click on the download link corresponding to your computer's operating system.
+  1. [Download and install RStudio](https://www.rstudio.com/products/rstudio/download3/).
+  + Scroll down to "Installers for Supported Platforms"
+  + Click on the download link corresponding to your computer's operating system.
+
+Optional: If you need more detailed instructions on how to install R and RStudio, watch this [DataCamp video (1m22s)](https://campus.datacamp.com/courses/working-with-the-rstudio-ide-part-1/orientation?ex=3).
+
+### Using R via RStudio
+
+Recall our car analogy from above. Just as we don't drive a car by interacting directly with the engine, but rather by using elements on the car's dashboard, we won't be using R directly. Instead we will use RStudio's interface. After you install R and RStudio on your computer, you'll have two new programs AKA applications you can open. We will always work in RStudio and not R. In other words:
+
+R: Do not open this          |  RStudio: Open this
+:-------------------------:|:-------------------------:
+<img src="images/Rlogo.png" alt="Drawing" style="height: 100px;"/>  |  <img src="images/RStudiologo.png" alt="Drawing" style="height: 100px;"/>
+
+Do remember though, that (heavier) R-scripts run faster in R compared to RStudio. So, when you are familiar enough with the basics and are brave enough to be a mechanic, you can always use RGui which is the standard graphical user interface (GUI) for R. For now, however, we will use Rstudio only as it makes driving our car/running our analyses a whole lot easier. In addition, it also helps you to get familiar with some of the basic R concepts.
+
+After you open RStudio, you should see the following:
+
+![](images/rstudio.png)
+
+Watch the following [DataCamp video (4m10s)](https://campus.datacamp.com/courses/working-with-the-rstudio-ide-part-1/orientation?ex=5) to learn about the different *panes* in RStudio, in particular the *Console pane* where you will later run R code.
+
+
+---
+
+## How do I code in R? {#code}
+
+Now that you're set up with R and RStudio, you are probably asking yourself "OK. Now how do I use R?" The first thing to note as that unlike other software like Excel, STATA, or SAS that provide [point and click](https://en.wikipedia.org/wiki/Point_and_click) interfaces, R is an [interpreted language](https://en.wikipedia.org/wiki/Interpreted_language), meaning you have to enter in R commands written in R code i.e. you have to program in R (we use the terms "coding" and "programming" interchangeably in this book).
+
+While it is not required to be a seasoned coder/computer programmer to use R, there is still a set of basic programming concepts that R users need to understand. Consequently, while this book is not a book on programming, you will still learn just enough of these basic programming concepts needed to explore and analyze data effectively.
+
+### Tips on learning to code
+
+Learning to code/program is very much like learning a foreign language, it can be very daunting and frustrating at first. However just as with learning a foreign language, if you put in the effort and are not afraid to make mistakes, anybody can learn. Before you know it, you will have fun learning more about it and be eager to learn even more. Something that also helps, is that most programmers have a good sense of humor. Just Google 'package R beepr' or go to http://www.sumsar.net/blog/2014/01/announcing-pingr/ and go see for yourself. Or just run the following code (no need to know what it does right now):
+
+```{r, eval = F}
+if(!"beepr" %in% rownames(installed.packages()))
+  install.packages("beepr")
+for(i in 1:10) {
+  Sys.sleep(1)
+  beepr::beep(i)
+}
+```
+
+
+So, whoever said learning can't be fun, obviously hasn't met programmers yet.
+
+![](images/ProgrammingFunny.jpg)
+
+Lastly, there are a few useful things to keep in mind as you learn to program:
+
+* **Computers are stupid**: You have to tell a computer everything it needs to do. Furthermore, your instructions can't have any mistakes in them, nor can they be ambiguous in any way. We, for example, know that we both mean the same thing when typing `length` and `lenght`. The computer, however, doesn't.
+* **Take the "copy/paste/tweak" approach**: Especially when learning your first programming language, it is often much easier to taking existing code that you know works and modify it to suit your ends, rather than trying to write new code from scratch. We call this the *copy/paste/tweak* approach. So early on, we suggest not trying to code from scratch, but please take the code we provide throughout this book and play around with it!
+* **Practice is key**:  Just as the only solution to improving your foreign language skills is practice, so also the only way to get better at R is through practice. Don't worry however, we'll give you plenty of opportunities to practice! In addition, don't forget to have fun while learning. This will make learning a whole lot easier and enable you to learn things quicker and faster. Just think back of all the boring and interesting, fun courses you had or just random things you learned. Which one do you still remember? It's the boring course, right?
+
+![](images/FunnyClass.jpg)
+
+
+
+---
+
+## What are R packages? {#packages}
+
+Another point of confusion with new R users is the notion of a package. R packages extend the functionality of R by providing additional functions, data, documentation and can be downloaded for free from the internet. They are written by a world-wide community of R users. For example, among the many packages we will use in this book are the
+
+* `ggplot2` package for data visualization in Chapter \@ref(data-viz)
+* `dplyr` package for data wrangling in Chapter \@ref(data-wrangling)
+
+There are two key things to remember about R packages:
+
+1. *Installation*: Most packages are not installed by default when you install R and RStudio. You need to install a package before you can use it. Once you've installed it, you likely don't need to install it again unless you want to update it to a newer version of the package.
+1. *Loading*: Packages are not loaded automatically when you open RStudio. You need to load them every time you open RStudio using the `library()` command.
+
+A good analogy for R packages is they are like apps you can download onto a mobile phone:
+
+R: A new phone           |  R Packages: Apps you can download
+:-------------------------:|:-------------------------:
+<img src="images/iphone.jpg" alt="Drawing" style="height: 200px;"/>  |  <img src="images/apps.jpg" alt="Drawing" style="height: 200px;"/>
+
+So, expanding on this analogy a bit:
+
+1. R is like a new mobile phone. It has a certain amount of functionality when you use it for the first time, but it doesn't have everything.
+1. R packages are like the apps you can download onto your phone, much like those offered in the App Store and Google Play. For example: Instagram.
+1. In order to use a package, just like in order to use Instagram, you must:
+1. First download it and install it. You do this only once.
+1. Load it, or in other words, "open" it, using the `library()` command.
+
+So just as you can only start sharing photos with your friends on Instagram if you first install the app and then open it, you can only access an R package's data and functions if you first install the package and then load it with the `library()` command. Let's cover these two steps:
+
+
+### Package installation
+
+(Note that if you are working on an RStudio Server, you probably will not need to install your own packages as that has been already done for you.  Still it is important that you know this process for later when you are not using the RStudio Server but rather your own installation of RStudio Desktop.)
+
+There are two ways to install an R package. For example, to install the `ggplot2` package:
+
+1. **Easy way**: In the Files pane of RStudio:
+a) Click on the "Packages" tab
+a) Click on "Install"
+a) Type the name of the package under "Packages (separate multiple with space or comma):" In this case, type `ggplot2`
+a) Click "Install"
+1. **Alternative way**: In the Console pane run `install.packages("ggplot2")` (you must include the quotation marks).
+
+Repeat this for the `dplyr` and `nycflights13` packages. If you still experience problems, have a look at this blog post [Installing R packages](https://www.r-bloggers.com/installing-r-packages/).
+
+**Note**: You only have to install a package once, unless you want to update an already installed package to the latest version. If you want to update a package to the latest version, then re-install it by repeating the above steps.
+
+### Package loading
+
+After you've installed a package, you can now load it using the `library()` command. For example, to load the `ggplot2` and `dplyr` packages, run the following code in the Console pane:
+
+```{r, eval=FALSE}
+library(ggplot2)
+library(dplyr)
+```
+
+**Note**: You have to reload each package you want to use every time you open a new session of RStudio.  This is a little annoying to get used to and will be your most common error as you begin.  When you see an error such as
+
+```
+Error: could not find function
+```
+
+remember that this likely comes from you trying to use a function in a package that has not been loaded.  Remember to run the `library()` function with the appropriate package to fix this error.
+
+### Packages on CRAN
+
+R comes with a set of `base` packages or `base` system, maintained by the R core
+team only. Examples: `base`, `datasets`, `graphics`. Additional packages are on CRAN (Thursday 1/23/2014: 5,140
+packages; Sunday 9/7/2014: 5,852 packages; Saturday 11/08/2014:
+6,041 packages; Tuesday 11/8/2016: 9,473 packages; Monday
+12/04/2017: 11,946 packages; Tuesday 04/10/2018: 12,430
+packages). These packages are developed and maintained by R users worldwide,
+and shared with the R community through CRAN.
+
+
+---
+
+## Conclusion
+
+You are now ready to get start your journey as an R-enthusiast!
+
+---
+
+<!--chapter:end:02-gettingStarted.Rmd-->
+
+# Objects and data types in R {#objects-data-types}
+
+## How it works
+
+You will now start with writing R code in the console and you will explore a first script of R code. Every line of code is interpreted and executed by R. Once R is done computing, the output of your R code will be shown in the console. In some cases, however, something might go wrong (e.g. due to an error in the code) and then you will either get a warning or an error. R makes use of the # sign to add comments, so that you and others can understand what the R code is about. Just like Twitter! Luckily, here your comments are not limited to 280 characters. When passing lines of code preceded by # to the R console, these will simply be ignored and hence, will not influence your results. [Quote from DataCamp's 'Introduction to R' course.] In its most basic form, R can be used as a simple calculator. We illustrate the use of some arithmetic operators in the code below.
+
+```{r}
+# use 'right click, run line or selection', of Ctrl + R
+10^2 + 36
+```
+
+---
+
+## Objects {#subsec:Objects}
+A basic concept in (statistical) programming is called a *variable* and in R, this is commonly referred to as an *object*. 
+An object allows you to store a value (e.g. 4) or a more complex data structure (e.g. a database). You can then later use this object's name to easily access the value or the data structure that is stored within this object. [Quote from DataCamp's 'Introduction to R' course.]
+
+We create an object by giving it a name and using the assignment operator `<-` or `->` to assign a value to this object [@introRbookdown]. The value gets stored into the object to which the arrow is pointing. You can then view the value of the object by passing it to the console and the value will then be given as output.
+
+```{r}
+HappyObject <- 1
+-1 -> SadObject
+HappyObject
+SadObject # Don't be so negative
+```
+
+Can you guess what the output will be for the following code?
+
+```{r}
+HappyObject -> SadObject
+IAmConfused <- SadObject
+IAmConfused
+```
+
+Once we have created an object, we can easily perform some calculations with it.
+
+```{r}
+HappyObject * 5
+(HappyObject + 10) / 2
+SadObject^2
+```
+
+Further, `=` is an alternative assignment operator to `<-`, but is often discouraged for people new to R. The `<-` operator is considered to be more important by R and precedes `=` in importance (for a more detailed explanation see https://stackoverflow.com/questions/1741820/what-are-the-differences-between-and-assignment-operators-in-r). In most contexts, however, `=` can be used as a safe alternative [@introR]. Just know that you should use it with care.
+
+```{r, eval = FALSE}
+a <- b = 2      # throws an error, these 2 operators should not be mixed
+mean(b = 5:10)  # b is not an argument in this function and the object b is not created
+mean(b <- 5:10) # here, b is created and then considered to be the argument of the function
+b
+```
+In addition, the code above illustrates that, within functions, `=` is reserved to assign objects to the arguments.
+
+---
+
+## Everything is an object
+
+In R, an analysis is normally broken down into a series
+of steps. Intermediate results are stored in objects, with minimal output at
+each step (often none). Instead, the objects are further manipulated to obtain
+the information required. In fact, the fundamental design principle underlying R (and S) is "everything
+is an object". Hence, not only vectors and matrices are objects that
+can be passed to and returned by functions, but also functions themselves,
+and even function calls. (Quote from 'Applied Econometrics in R', by Kleiber & Zeileis) A variable in R can take on any available data type, or hold any R object.
+
+```{r}
+# see all objects stored in R's memory, where 'ls()' is for 'List Objects' 
+# and returns a vector of character strings
+# giving the names of the objects in the specified environment
+rm(list = ls()[!grepl("Object|Confused", ls(), perl = T)]) # Clean environment to have a short list
+ls()
+# to remove objects from R's memory, use
+rm(SadObject)
+ls()
+
+a <- 1
+b <- 2
+c <- 3
+d <- 4
+rm(a, b)
+rm(list = c('c', 'd'))
+a <- 1
+b <- 2
+c <- 3
+d <- 4
+# with the following code, you will remove everything in your working directory
+rm(list = ls())
+```
+
+All objects that you create, are stored in your current workspace and in RStudio you can view the list of objects by clicking on the 'Environment' tab in the top right hand pane. This workspace is also referred to as the global environment and this is where all the interactive computations take place (i.e. outside of a function) [@AdvancedR].
+
+![](images/WorkingSpace.png)
+
+Without going to much into the technical details, we can sort of compare your workspace with your own, special sandbox.
+
+![](images/Sandbox2.jpg)
+
+Everything that you create in your sandbox, stays there and gets saved in your `.RData` file when you close your session. When creating an Rstudio project, this `RData` gets automatically imported (with the default settings) when you open your project again and with this, your session gets 'restored' as it contains all objects you created last time. When creating a new project in a different directory, you create a new sandbox and this makes it easy to structure all of your different projects and analyses.
+
+---
+
+## Basic data types 
+
+R works with numerous data types. Some of the most basic types to get started with are:
+
+* Decimal values like 4.5 are called numerics.
+* Natural numbers like 4 are called integers. Integers are also numerics.
+* Boolean values (TRUE or FALSE) are called logical.
+* Dates or `POSIXct` for time based variables. Here, `Date` stores just a date and `POSIXct` stores a date and time. Both objects are actually represented as the number of days (Date) or seconds (POSIXct) since January 1, 1970.
+* Text (or string) values are called characters.
+
+Note how the quotation marks on the right indicate that "some text" is a character.
+
+```{r}
+my_numeric <- 42.5
+
+my_character <- "some text"
+
+my_logical <- TRUE
+
+my_date <- as.Date("05/29/2018", "%m/%d/%Y")
+```
+
+Note that the logical values `TRUE` and `FALSE` can also be abbreviated as `T` and `F`, respectively.
+
+```{r}
+T
+F
+```
+
+
+You can check the data type of an object beforehand. You can do this with the class() function.
+
+```{r}
+class(my_numeric)
+
+# your turn to check the type of 'my_character' and 'my_logical' and 'my_date'
+```
+
+When you are interested if an object is of a certain type, you can use the following functions:
+```{r}
+is.numeric(my_numeric)
+is.character(my_numeric)
+
+is.character(my_character)
+is.logical(my_logical)
+```
+
+
+This is incredibly useful when you have to check the input that's passed to a self-written function and to prevent that objects of a wrong type get passed. In addition, as you might have noticed, there's no function `is.Date`. No need to worry, however, because R's flexibility allows us to create a function like this ourselves, but we'll go over it more in detail in Chapter \@ref(functions). For now, just know that you can alternatively use the function `inherits` or `is`
+
+```{r}
+inherits(my_date, "Date")
+is(my_date, "Date")
+```
+
+
+---
+
+## Vectors 
+
+Vectors are one-dimension arrays that can hold numeric data, character data, or logical data. In other words, a vector is a simple tool to store data. In R, you create a vector with the combine function c(). You place the vector elements separated by a comma between the parentheses. (Quote from DataCamp's 'Introduction to R course') Vectors are key! Operations are applied to each element of the vector automatically, there is no need to loop through the vector.
+
+```{r}
+# To combine elements into a vector, use c():
+a = c(1, 2, 3, 4)
+```
+
+
+Once we have created this vector, we can pass it to functions to gather some useful information about it.
+
+```{r, eval = FALSE}
+?min
+?max
+?mean
+?sd
+?var
+
+min(a)
+max(a)
+mean(a)
+sd(a)
+var(a)
+```
+
+In addition to the above functions, `length` is another function that's incredibly useful and one of the functions you will use a lot. When passing a vector to this function, it returns the number of elements that it contains 
+
+```{r}
+length(a)
+```
+
+Often, we want to create a vector that's a sequence of numbers. In this case, we can use the `:` symbol to create a sequence of values in steps of one [@introRbookdown]. Alternatively, we can use the function `seq` which allows for more flexibility.
+
+
+```{r}
+# steps of one
+1:10
+seq_len(10)
+# specify the steps yourself
+seq(from = 0, to = 10, by = 0.5)
+# or the length of the vector, and the steps will be computed by R
+seq(from = 0, to = 10, length = 6)
+```
+
+When we need to repeat certain values, we can use the `rep` function.
+
+```{r}
+rep(1, times = 5)
+rep(1:5, times = 5)
+rep(1:5, each = 2)
+```
+
+### Vector indexing
+To access certain elements of a vector, we use the square brackets `[]`. For example,
+
+```{r}
+Abra = 1:5
+Abra[1]
+Abra[5]
+```
+
+To select a subset of elements, we can specify an *index vector* [@introR] that specifies which elements should be selected and in which order.
+
+```{r}
+Abra[c(2, 4)]
+Abra[c(4, 2)]
+```
+
+The index vector can be of four different types [@introR]:
+
+
+1. A logical vector.
+```{r}
+Abra[c(TRUE, FALSE, TRUE, TRUE, FALSE)]
+Kadabra <- Abra > 3
+Kadabra
+Abra[Kadabra]
+```
+2. A vector with positive indices, which specifies which elements should be selected.
+```{r}
+Abra[1:3]
+```
+3. A vector with negative indices, which specifies which elements should be *excluded*.
+```{r}
+Abra[-c(1:3)]
+```
+4. A vector of character strings, in case of a named vector. This is then similar to the index vector with positive indices, but now we select the items based on their names. This will be particularly useful later on, when we are working with data frames.
+```{r}
+a <- 1:3
+names(a) <- c("Squirtle", "Bulbasaur", "Charmander")
+a
+a["Squirtle"]
+# or
+IChooseyou <- c("Charmander")
+a[IChooseyou]
+```
+
+Next to selecting elements, we can also use this to perform an operation on these elements only.
+
+```{r}
+a[1] = 25
+a
+```
+
+### Character and logical vectors
+A vector can either hold numeric, character or logical values. 
+```{r}
+family <- c("Katrien", "Jan", "Leen")
+family
+family[2]
+str(family) # str() displays the structure of an R object in compact way
+class(family)
+```
+
+In addition, you can give a name to the elements of a vector with the `names()` function. Here is how it works
+
+```{r}
+my_vector <- c("Katrien Antonio", "teacher")
+names(my_vector) <- c("Name", "Profession")
+my_vector
+```
+
+
+Important to remember is that a vector can only hold elements of the same type. Consequently, when you specify elements of different types in a vector, it saves it to that type that contains the most information (logical < numeric < character).
+```{r}
+c(0, TRUE)
+c(0, "Character")
+```
+
+### Missing values
+When working with real-life data, you are confronted with missing data  more often than you'd care to admit. The values are indicated by `NA` and any operation on this value will remain `NA`. To assess which elements are missing in a vector, you can use the function `is.na`.
+```{r}
+a <- c(1:2, NA, 4:5)
+a
+is.na(a)
+```
+
+As it returns a logical vector, we can use it as an index vector.
+```{r}
+a[is.na(a)]
+```
+
+### Logical operators
+We are able to create logical expressions using the logical operators `<`, `<=`, `>`, `>=`, `==`, where the last one is reserved exact equality. This enables us to select subset of elements. Further, we can combine logical expressions using `&` or `|` to denote their intersection or union, respectively.
+
+```{r}
+a <- 1:5
+a > 3
+a == 3
+a[a > 2 & a < 4]
+a[a == 3 | a == 5]
+```
+To get the negation of a logical expression, we make use of the `!` operator.
+
+```{r}
+FALSE
+!FALSE
+b <- c(TRUE, FALSE, TRUE, TRUE)
+!b
+```
+
+This `!` operator can then be used for a whole range of useful manipulations. Going back to the vector with missing values, we can use this to exclude the missing values in the vector.
+
+```{r}
+a = c(1:2, NA, 4:5)
+a[!is.na(a)]
+na.omit(a) # alternative to omit missing values
+```
+
+
+The above also illustrates that we can combine multiple statements or manipulations in one line of code. Combining them gives us a very powerful tool to handle and analyze data in an efficient way.
+
+```{r}
+a <- -5:5
+max(a[a > 0 & a <= 3])
+```
+
+
+### Factors
+To specify that you have a vector with a discrete classification, we make use of a *factor* object which can either be ordered or unordered. These are mainly used in formulae, but we will already introduce the basics here.
+
+```{r}
+Fruits <- c("Apple", "Banana", "Grape", "Lemons")
+Fruits <- factor(Fruits)
+Var    <- rep(1:4, each = 2)
+Var    <- factor(Var, levels = 1:4, labels = c("Apple", "Banana", "Grape", "Lemons"))
+Var
+levels(Var)
+nlevels(Var)
+```
+Be careful, however, when converting factor variables to numeric. The factor variables have an underlying numeric value assigned to them and you should therefore always be careful when converting them.
+
+```{r}
+as.numeric(Var)
+a <- as.character(c(3, 5, 29, 5))
+a <- factor(a)
+a
+as.numeric(a)
+```
+
+
+---
+
+## Matrices
+
+In R, a matrix is a collection of elements of the same data type (numeric, character, or logical) arranged into a fixed number of rows and columns. Since you are only working with rows and columns, a matrix is called two-dimensional. You can construct a matrix in R with the `matrix()` function. (Quote from DataCamp's 'Introduction to R course') 
+
+```{r}
+# a 3x4 matrix, filled with 1,2,..., 12
+matrix(1:12, 3, 4, byrow = TRUE)
+matrix(1:12, byrow = TRUE, nrow = 3)
+# hmmm, check help on 'matrix'
+? matrix
+```
+
+In addition to the function `matrix`, we can also create matrices by combining vectors through use of the `cbind` and `rbind` functions.
+
+```{r}
+# one way of creating matrices is to bind vectors together
+cbind(1:2, 6:9)     # by columns
+rbind(1:3, -(1:3))  # by rows
+m <- cbind(a = 1:3, b = letters[1:3])
+m
+rbind(a = 1:3, b = letters[1:3])
+# ask help, what is the built-in 'letters'?
+? letters
+```
+
+
+### Matrix operations and indexing
+Matrices and their theory are an essential part of linear algebra and R therefore has a lot of functions specifically designed for matrices. 
+
+```{r}
+# create matrix object 'm'
+x <- matrix(1:12, 3, 4)
+x
+nrow(x)
+ncol(x)
+dim(x)
+t(x)    # matrix transpose
+x = matrix(1:4, nrow = 2)
+x %o% x          # outer product
+outer(x, x, "*") # alternative
+diag(x)          # extract diagonal elements
+det(x)           # determinant
+eigen(x)         # eigenvalues and eigenvectors
+```
+
+An important difference with other statistical software programs, is that `*` is used for element-wise multiplication. When you want to multiply matrices, you should use the `%*%` operator.
+
+```{r}
+x * x        # element-wise multiplication
+t(x) %*% x   # use %*% for matrix multiplication
+crossprod(x) # alternative to t(x) %*% x
+x %*% t(x)
+tcrossprod(x)
+```
+
+Further, to get the inverse of a matrix, we use the `solve` function.
+```{r}
+solve(x)
+```
+
+
+
+To select a subset of elements of a matrix, we again use vector indices within the square brackets `[]`. When we only want to select certain rows, columns or both, we put a comma in the square brackets.
+
+
+```{r}
+x[1:5]  # select first 5 elements, starts from 1st element from the 1st column and proceeds to the next elements in the 1st column
+x[1, ]  # select first row
+x[, 1]  # select first column
+x[2, 2] # select fourth element in fourth column
+```
+
+---
+
+## Lists
+A list in R allows you to gather a variety of objects under one object in an ordered way. These objects can be matrices, vectors, data frames, even other lists, etc. It is not even required that these objects are related to each other in any way. You could say that a list is some kind super data type: you can store practically any piece of information in it! (Quote from DataCamp's 'Introduction to R course')
+
+```{r}
+# a first example of a list
+L <- list(one = 1, two = c(1, 2), five = seq(1, 4, length=5),
+          six = c("Katrien", "Jan"))
+names(L)
+summary(L)
+class(L)
+str(L)
+
+# list within a list
+# a list containing: a sample from a N(0,1), plus some markup
+# list within list
+mylist <- list(sample = rnorm(5), family = "normal distribution", parameters = list(mean = 0, sd = 1))
+mylist
+str(mylist)
+```
+
+The objects stored on the list are known as its components [@introR] and to access these components, we either use a numerical value indicating the position in the list or the name of the component (only possible when it has been given a name of course).
+
+```{r}
+# now check
+mylist[[1]]
+mylist[["sample"]]
+```
+
+If the components have names, we can also access them using the `$` operator in the following way.
+
+```{r}
+mylist$sample
+mylist$parameter
+mylist$parameters$mean
+```
+
+Moreover, we can even access the elements of the component in the same way as we did before.
+```{r}
+mylist[[1]][2:4]
+```
+To access lists within lists, we use the following code
+```{r}
+Dream = list(WithinADream = list(WithinAnotherDream = "DieTraumdeutung"))
+Dream$WithinADream$WithinAnotherDream
+Dream[[1]][[1]]
+```
+We use double square brackets to get the component in its original form. If we just use single brackets, we get it as an object of class list.
+```{r}
+Dream = list(WithinADream = "SomethingFunny")
+class(Dream[[1]])
+class(Dream[1])
+```
+
+
+
+---
+
+## Data frames
+
+Most data sets you will be working with will be stored as data frames. A data frame has the variables of a data set as columns and the observations as rows. This will be a familiar concept for those coming from different statistical software packages such as SAS or SPSS. 
+
+First, you will look at a 'classic' data set from the `datasets` package that comes with the base R installation. The `mtcars` (Motor Trend Car Road Tests) data was extracted from the 1974 Motor Trend US magazine, and comprises fuel consumption and 10 aspects of automobile design and performance for 32 automobiles (1973-74 models). (Quote from DataCamp's 'Introduction to R course')
+
+```{r, eval=FALSE}
+mtcars
+```
+```{r}
+str(mtcars)
+head(mtcars)
+tail(mtcars)
+```
+
+Since using built-in data sets is not even half the fun of creating your own data sets, you will now work with your own personally created data set. (Quote from DataCamp's 'Introduction to R course')
+
+```{r}
+Df <- data.frame(x = c(11, 12, 7), y = c(19, 20, 21), z = c(10, 9, 7))
+# quick scan of the object 't'
+summary(Df)
+str(Df)
+# another way to create the same data frame
+x <- c(11, 12, 7)
+y <- c(19, 20, 21)
+z <- c(10, 9, 7)
+Df <- data.frame(x, y, z)
+```
+
+Accessing elements in a data frame is similar to how we access elements in a matrix. We can again use an index vector to access either the rows, columns or both. In addition, similar to lists, we can access columns using the `$` operator or using the double square brackets.
+
+```{r}
+Df[1:2, ]
+Df[, 2:3]
+Df$x
+Df[["x"]]
+Df[[1]]
+```
+
+In essence, a data frame can be seen as a combination of a list and a matrix. The variables are its components and the object has a separate class `"data.frame"` [@introR]. 
+```{r}
+is.list(Df)
+class(Df)
+```
+
+But that's enough technical stuff for now, let's do our first data exploration and calculate the `mean` of the variable `z` in data frame `t`!
+```{r}
+mean(Df$z)   
+mean(z)   # does not work, why not?
+```
+
+The code `mean(z)` doesn't work, because z wasn't defined in the global environment but only within your data frame. Going back to the sandbox analogy, you can look at the data frame as a mini-sandbox within your bigger sandbox. Everything that gets defined in this sandbox, stays there. This way, we keep our sandbox nice and organized. Just imagine the mess when all of your variables of your data frame would just float around in your sandbox. 
+
+![](images/Sandbox.jpg)
+
+One 'dirty' way to access the variables in your data frame without specifying the said data frame, is to use the `attach` function. With this function, we tell R that it also has to search within the attached data frame.
+
+
+```{r}
+rm(x, y, z) # Remove variables
+attach(Df)
+mean(z)
+detach(Df)
+```
+
+Using attach, however, can be dangerous. If you created an object with a similar name to a variable in your data frame, R will **not** use the variable in your data frame but the one that was created before.
+
+```{r}
+x = rnorm(1e2)
+z = "KadabraCastsConfusion"
+attach(Df)
+mean(x)
+mean(Df$x)
+mean(z)
+detach(Df)
+```
+One way to avoid this, is to use the function `with`.
+
+```{r}
+with(Df, mean(z))
+```
+
+More on data frames
+
+```{r}
+# this does not work
+# Df <- data.frame(x = c(11,12), y = c(19,20,21), z = c(10,9,7)) 
+# but you _can_ do
+Df <- data.frame(x = c(11, 12, NA), y = c(19, 20, 21), z = c(10, 9, 7))
+# data frame with different types of information
+b <- data.frame(x = c(11, 12, NA), y = c("me", "you", "everyone"))
+str(b)
+```
+
+In previous versions of R, character variables in a data frame were automatically converted to factor variables. They were briefly mentioned before and in essence, factor variables are used to store categorical variables (i.e. nominal, ordinal or dichotomous variables). Categorical variables can only take on a limited number of values. Conversely, continuous variables can take on an uncountable set of values. If you want to R to convert the variables with character strings to factor variables when creating a data frame, just specify `stringsAsFactors = TRUE`.
+
+```{r}
+b <- data.frame(x = c(11, 12, NA), y = c("me", "you", "everyone"), stringsAsFactors = TRUE)
+str(b)
+```
+
+
+--- 
+
+## Exercises
+
+```{block lc-summarize, purl=FALSE}
+**_Learning check_**
+```
+
+1. Explore the objects and data types in R.
++ Create a vector `fav_music` with the names of your favorite artists.
++ Create a vector `num_records` with the number of records you have in your collection of each of those artists.
++ Create vector `num_concerts` with the number of times you attended a concert of these artists.
++ Put everything together in a data frame, assign the name `my_music` to this data frame and change the labels of the information stored in the columns to `artist`, `records` and `concerts`.
++ Extract the variable `num_records` from the data frame `my_music`. Calculate the total number of records in your collection (for the defined set of artists). Check the structure of the data frame, ask for a summary.
+
+```{block, purl=FALSE}
+```
+
+<!--chapter:end:03-objectsDataType.Rmd-->
+
+# Getting started with data in R {#started-with-data}
+
+## Importing data
+
+Importing data into R to start your analyses-it should be the easiest step. Unfortunately, this is almost never the case. Data come in all sorts of formats, ranging from CSV and text files and statistical software files to databases and HTML data. Knowing which approach to use is key to getting started with the actual analysis. (Quote from DataCamp's 'Importing Data in R (Part 1)' course)
+
+The default location where R will look or store files, is your working directory [@introR]. When opening an RStudio project, the working directory is automatically set to the folder where the .Rproj file is located. 
+
+```{r, eval=FALSE}
+# what is the current working directory?
+getwd()
+# which files are currently stored in my working directory?
+dir()
+```
+
+To change the working directory, we use the `setwd()` function.
+```{r, eval = FALSE}
+setwd("C:/Users/JohnDoe/Documents/RandomProject")
+```
+
+If we have stored the data in a subfolder of our current working directory, we can specify the path as follows.
+```{r}
+# where are my data files?
+pathData <- file.path('data')
+```
+
+Creating a subfolder for your data files a good way to keep your files and project organized. When learning R, however, it may be easier to use the function `file.choose()` to use the point and click approach to select your file.
+
+
+### Importing a .csv file with `read.csv()` 
+
+The `utils` package, which is automatically loaded in your R session on startup, can import CSV files with the `read.csv()` function. You will now load a data set on swimming pools in Brisbane, Australia (source: [data.gov.au](data.gov.au)). The file contains the column names in the first row and uses commas to separate values within rows (CSV stands for comma-separated values). (Quote and example from DataCamp's 'Importing Data in R (Part 1)' course)
+```{r}
+path.pools <- file.path(pathData, "swimming_pools.csv")
+pools <- read.csv(path.pools)
+str(pools)
+```
+With `stringsAsFactors`, you can tell R whether it should convert strings in the flat file to factors. 
+```{r}
+pools <- read.csv(path.pools, stringsAsFactors = FALSE)
+```
+
+We can then use the function `str()` to get a first compact view of the imported database. This function can be used on any object in R and will help you to understand its structure.
+
+```{r}
+str(pools)
+```
+#### Importing a .csv file with semicolons as delimiter
+
+Instead of a comma, it is also possible that the different rows are separated by semicolons. It is therefore important to know what kind of delimiter is used in your raw data file. This is why the `str()` function is so useful, since it will directly show you if the database was imported correctly or not.
+
+```{r}
+policy.path <- file.path(pathData, "policy.csv")
+policy <- read.csv(policy.path)
+str(policy)
+dim(policy)
+```
+Here, we clearly see that the database was not imported correctly. This is because the policy database uses a semicolon as a delimiter. By default, the delimiter in `read.csv()` is a comma. To correctly import the database, we can either use 
+
+```{r, eval = FALSE}
+read.csv2(policy.path)
+```
+
+which has the semicolon as default delimiter or we can change the delimiter by changing the argument `sep` in the `read.csv()` function.
+
+```{r, eval = FALSE}
+read.csv(policy.path, sep = ";")
+```
+
+We can even use the function `read.table()` to import the database, by specifying `header = TRUE` and `sep = ";"`.
+
+```{r}
+policy <- read.table(policy.path, header = TRUE, sep = ";")
+```
+
+Once we have imported the database, we can further explore it using the following functions.
+```{r}
+head(policy)
+tail(policy)
+names(policy)
+dim(policy)
+```
+
+For the purpose of this chapter, we will write a custom function to explore the data.frame. For now, it is not necessary to understand it, as we will discuss functions in detail in Chapter \@ref(functions).
+```{r}
+ExploreDf <- function(x) {
+        if(!is.data.frame(x))
+                stop("Only objects of type data.frame are allowed.")
+        StrAdj  <- function(x) capture.output(str(x))
+        fntions <- setNames(list(names, dim, head, tail, StrAdj), c("names", "dim", "head", "tail", "str"))
+        Res <- sapply(fntions, function(f) f(x), simplify = F)
+        for(i in seq_along(Res)) {
+                cat("\n\n", names(Res)[i], ":\n")
+                if(i %in% 3:4)
+                        print.data.frame(Res[[i]])
+                else if(i != 5)
+                        print(Res[[i]])
+                else
+                        cat(paste0(Res[[5]], collapse = "\n"))
+        }
+}
+```
+
+
+
+### Importing a .txt file: the Danish fire insurance data
+
+`read.table()` is the most basic function to import data sets. The `read.table()` function is in fact the function that is used by the `read.csv()` and `read.csv2()` functions, but the arguments of the two latter functions are different. You can easily see this by looking at the functions themselves.
+
+```{r}
+read.csv
+read.csv2
+```
+An important difference with the `read.csv()` function, is that the `header` argument defaults to FALSE and the sep argument is "" by default in `read.table()`. (Quote from DataCamp's 'Importing Data in R (Part 1)' course) 
+
+`header` is an argument that requires a logical argument (i.e. `TRUE` or `FALSE`) and is used to indicate whether the file contains the variable names as its first line. So, in almost all cases, you will have to set this to `TRUE`.
+```{r}
+path.fire <- file.path(pathData, "danish.txt")
+danish <- read.table(path.fire, header = TRUE)
+head(danish, n = 10) # use the argument 'n' to display less/more records
+ExploreDf(danish)
+```
+
+Compared to the raw .txt file, something is a bit different in the imported dataset. Can you see what's different? That's right, the second column name has dots instead of hyphens.
+
+```{r}
+# Function to open files using R
+opendir <- function(dir = getwd()){
+  if (.Platform['OS.type'] == "windows"){
+    shell.exec(dir)
+  } else {
+    system(paste(Sys.getenv("R_BROWSER"), dir))
+  }
+}
+# open file
+opendir(paste0(getwd(), "/", path.fire))
+```
+
+
+When importing a data file with headers, R checks if the column names are syntactically valid (i.e. valid in R-code). If not, these are adjusted to make sure that they are usable in R. One way to avoid this kind of behavior, is to set the `check.names` argument to `FALSE`.
+
+```{r}
+danish <- read.table(path.fire, header = TRUE, check.names = FALSE)
+names(danish)
+```
+
+Note, however, that you will now have to select your columns using backticks (e.g. `df$`variable``).
+
+```{r}
+# The following does not work
+# danish$Loss-in-DKM
+# This does work
+head(danish$`Loss-in-DKM`)
+```
+
+You can also explicitly specify the column names and as well as column types/classes of the resulting data frame. You can do this by setting the `col.names` and the `colClasses` argument to a vector of strings. (Quote from DataCamp's 'Importing Data in R (Part 1)' course)
+
+```{r}
+path.hotdogs <- file.path(pathData, "hotdogs.txt")
+hotdogs <- read.table(path.hotdogs, header = FALSE, col.names = c("type", "calories", "sodium"))
+# display structure of hotdogs
+str(hotdogs)
+# edit the colClasses argument to import the data correctly: hotdogs2
+hotdogs2 <- read.table(path.hotdogs, header = FALSE, 
+                       col.names = c("type", "calories", "sodium"),
+                       colClasses = c("factor", "NULL", "numeric"))
+# display structure of hotdogs2
+str(hotdogs2)
+```
+What happened? What is the effect of specifying one of the `colClasses` as `NULL`?
+
+Another very useful function to explore your data.frame is the `summary()` function. This function can be used on a whole range of objects and provides you with a short summary of the object (as you might have expected).
+
+```{r}
+summary(danish)
+```
+
+Inspecting the data.frame, we see that the class of the variable `Date` is not correct. One way to convert this variable to an object with class `Date` is by using the `as.Date()` function.
+
+```{r}
+danish$Date <- as.Date(danish$Date, format = "%m/%d/%Y")
+str(danish)
+```
+
+To understand why `format = "%m/%d/%Y"`, you can check the help page of `strptime()`. Shortly summarized, `%m` indicates that month is given as a decimal number, `%d` that the day of the month is also given as a decimal number, `%Y` that year with century is given and the latter three are separated by `/` as this is also the delimiter that us used in the `Date` column. 
+```{r}
+?strptime
+OrigLocal = Sys.getlocale("LC_TIME")
+Sys.setlocale("LC_TIME", "English_United States.1252")
+as.Date("16-Apr-1963", format = "%d-%b-%Y")
+Sys.setlocale("LC_TIME", OrigLocal)
+```
+
+Or you can try to fix this directly when importing the `danish.txt`.
+```{r}
+path.fire <- file.path(pathData, "danish.txt")
+danish <- read.table(path.fire, header = TRUE, colClasses = c("Date", "numeric"))
+head(danish$Date)
+```
+
+Setting `colClasses` to `Date`, however, only works when the format is either `"%Y-%m-%d"` or `"%Y/%m/%d"` (see `?as.Date`). We therefore have to put in some extra effort and create a custom function/class to correctly import the `Date` variable.
+
+```{r}
+setClass("myDate")
+setAs("character", "myDate", function(from) as.Date(from, format = "%m/%d/%Y"))
+danish2 <- read.table(path.fire, header = TRUE, colClasses = c("myDate", "numeric"))
+str(danish2)
+```
+
+
+### Importing a .sas7bdat file
+
+When you decided to make the switch from SAS to R, you obviously made the right choice. SAS has been around for a very long time, but even since 1991 it was clear that R has always been the better choice.
+
+```{r}
+if(!"fortunes" %in% rownames(installed.packages()))
+        install.packages("fortunes")
+fortunes::fortune(22)
+fortunes::fortune(84)
+fortunes::fortune(224)
+```
+To import a SAS file that has a sas7bdat format, we use the `read.sas7bdat()` function from the `sas7bdat` package.
+
+```{r}
+if(!"sas7bdat" %in% rownames(installed.packages()))
+        install.packages("sas7bdat")
+library(sas7bdat)
+path.severity <- file.path(pathData, "severity.sas7bdat")
+severity <- read.sas7bdat(path.severity)
+ExploreDf(severity)
+```
+
+### Importing an .xlsx file
+
+You will import data from Excel using the `readxl` package (authored by Hadley Wickham and maintained by RStudio).
+
+Before you can start importing from Excel, you should find out which sheets are available in the workbook. You can use the `excel_sheets()` function for this. (Quote and example from DataCamp's 'Importing Data in R (Part 1)' course)
+```{r}
+# load the readxl package
+library(readxl)
+path.urbanpop <- file.path(pathData, "urbanpop.xlsx")
+excel_sheets(path.urbanpop)
+```
+
+You can import the Excel file with the `read_excel()` function. Here is the recipe:
+
+```{r}
+pop_1 <- read_excel(path.urbanpop, sheet = 1)
+pop_2 <- read_excel(path.urbanpop, sheet = 2)
+pop_3 <- read_excel(path.urbanpop, sheet = 3)
+str(pop_1)
+# put pop_1, pop_2 and pop_3 in a list: pop_list
+pop_list <- list(pop_1, pop_2, pop_3)
+```
+The object `pop_1` is a `tibble`, an object of `tbl_df` class (the 'tibble') that provides stricter checking and better formatting than the traditional data frame. The main advantage to using a `tbl_df` over a regular data frame is the printing: `tbl` objects only print a few rows and all the columns that fit on one screen, describing the rest of it as text. If you want to stick to traditional data frames, you can convert it using the `as.data.frame` function.
+
+```{r}
+pop_1_df <- as.data.frame(pop_1)
+str(pop_1_df)
+```
+
+In the previous demo you generated a list of three Excel sheets that you imported. However, loading in every sheet manually and then merging them in a list can be quite tedious. Luckily, you can automate this with `lapply()`. (Quote from DataCamp's 'Importing Data in R (Part 1)' course)
+
+```{r}
+pop_list <- lapply(excel_sheets(path.urbanpop), read_excel, path = path.urbanpop)
+str(pop_list)
+```
+
+Apart from path and sheet, there are several other arguments you can specify in `read_excel()`. One of these arguments is called `col_names`. By default it is `TRUE`, denoting whether the first row in the Excel sheets contains the column names. If this is not the case, you can set `col_names` to `FALSE`. In this case, R will choose column names for you. You can also choose to set col_names to a character vector with names for each column. (Quote from DataCamp's 'Importing Data in R (Part 1)' course)
+
+```{r}
+path.urbanpop_nonames <- file.path(pathData, "urbanpop_nonames.xlsx")
+# Import the the first Excel sheet of urbanpop_nonames.xlsx (R gives names): pop_a
+pop_a <- read_excel(path.urbanpop_nonames, col_names = FALSE)
+# Import the the first Excel sheet of urbanpop_nonames.xlsx (specify col_names): pop_b
+cols <- c("country", paste0("year_", 1960:1966))
+pop_b <- read_excel(path.urbanpop_nonames, col_names = cols)
+# Print the summary of pop_a
+summary(pop_a)
+# Print the summary of pop_b
+summary(pop_b)
+```
+In the code printed above, `paste0` (and also `paste`) converts its arguments (via `as.character`) to character strings, and concatenates them (in case of `paste` separating them by the string given by the argument `sep`, which is a single space by default). 
+
+Many other packages exist to import Excel data, including `XLConnect`, an Excel Connector for R that
+provides comprehensive functionality to read, write and format Excel data. See [DataCamp's Importing Data in R (Part 1)](https://campus.datacamp.com/courses/importing-data-in-r-part-1/) course.
+
+---
+
+## Basic data handling steps
+
+You will now learn some basic functions to handle data in R. You start with basic instructions (from `base` R) for data handling and more on data wrangling follows in Chapter \@ref(data-wrangling). Useful functions from `base` are `subset`, `sort`, `order`, `merge`, `cbind` and `rbind`. Manipulating the data typically consumes a lot of effort in the beginning, but will become second nature once you get the hang of it. 
+
+Manipulating the data often requires repeated operations on different sections of the data, in a 'split-apply-combine' way of working. Let's illustrate all of this below. Some of the examples that follow are taken from Michael Clark's `An introduction to R'. 
+
+### Subsetting
+
+The data set `state.x77` is available from the package `datasets`. This package contains a variety of data sets and some of them contain information on all 50 states of the United States of America. The `state.x77` data set, for example, is a matrix with 50 rows and 8 columns which contains a wealth of information on all 50 different states.
+```{r}
+?state.x77
+states <- data.frame(state.x77)
+ExploreDf(states)
+states[14, ]
+states[3, 6, drop = F] # use drop = FALSE to keep it as a data.frame
+states[, 'Frost'] 
+states$Frost
+```
+You will also use the data stored in `state.region`, a factor giving the region (Northeast, South, North Central, West) that each state belongs to.
+```{r}
+state.region
+length(state.region)
+# select those states that are in the south of the US 
+mysubset <- subset(states, state.region == "South")
+# subset a selection of variables
+str(states)
+(mysubset <- states[, c(1:2, 7:8)])
+(mysubset <- states[, c("Population", "Income", "Frost", "Area")])
+```
+
+Next to the function `subset()`, we can also use the vector indices (see Chapter \@ref(objects-data-types)). When using `which()`, it returns the indices for which the logical expression is `TRUE`. It is in fact always safer to use the logical statement in combination with `which`, since `which` automatically treats missing values as `FALSE`. Just look at what goes wrong in the following example.
+```{r}
+CopyStates = states
+CopyStates$Income[sample(1:nrow(CopyStates), 3, F)] = NA
+CopyStates[CopyStates$Income > 5000, ]
+CopyStates[which(CopyStates$Income > 5000), ]
+```
+
+
+### Find minimum or maximum
+
+A similar function to `which()` is the function `which.min()`, which returns the index of the smallest value in a vector. `which.max()` works in a similar way. Using the information stored in `states`, which states in the US have the smallest, respectively highest, population density?
+```{r}
+least_pop <- which.min(states$Population)
+states[least_pop, ]
+most_pop <- which.max(states$Population)
+states[most_pop, ]
+```
+
+Next to these functions, `pmin()` and `pmax()` are also incredibly useful. Let's illustrate the difference with the functions `min()` and `max()` with a short example.
+
+```{r}
+a <- 1:5
+b <- -1 * (1:5)
+min(a, b)
+pmin(a, b)
+max(a, b)
+pmax(a, b)
+```
+
+
+### Sorting
+
+To sort a vector, you can use the function `sort()`.
+
+```{r}
+sort(states$Population)
+sort(states$Population, decreasing = T)
+```
+This function, however, is not useful and even dangerous within data frames since you only sort the values of the vector itself. To sort data in a data frame, you use the function `order()` which returns the indices of the vector. Hence, to sort the states based on their population, you use the following code.
+```{r}
+head(sort(states$Population))
+head(order(states$Population))
+sort1.states <- states[order(states$Population), ]
+head(sort1.states)
+# sort by two variables
+sort2.states <- states[order(states$Illiteracy, states$Income), ]
+head(sort2.states)
+```
+
+By default, the sort order is increasing (or alphabetical in case of a character string). You can change this by setting `decreasing = TRUE`.
+
+```{r}
+# sort in reverse order
+sort3.states <- states[order(states$Life.Exp, decreasing = T), ]
+head(sort3.states)
+```
+
+### Merging
+
+To add a column to an existing data frame `Df`, you can either use `Df$NewVar <- 1` or `Df[["NewVar"]] <- 1`.
+```{r}
+Df <- data.frame(id = factor(1:12), group = factor(rep(1:2, each = 3)))
+str(Df)
+head(Df)
+x <- rnorm(12)
+y <- sample(70:100, 12)
+x2 <- rnorm(12)
+# add a column
+Df$grade <- y  # or Df[["grade"]] <- y
+head(Df)
+```
+
+To merge different data frames, you can use the function `merge()`. For this, we of course need a column in both data frames that's a unique identifier for each of the observations. Alternatively, you can use `cbind()`. I don't need to tell you that this of course comes with its own dangers and that you need to make sure that both data frames are then sorted.
+
+```{r}
+Df2 <- data.frame(id = Df$id, y)
+head(Df2)
+Df3 <- merge(Df, Df2, by = "id", sort = F) # using merge
+head(Df3)
+Df4 <- cbind(Df, x) # using cbind()
+head(Df4)
+```
+
+To add rows to an existing data frame, you use the function `rbind()`.
+```{r}
+# add rows
+Df2 <- data.frame(id = factor(13:24), 
+                 group = factor(rep(1:2, e = 3)), grade = sample(y))
+Df2
+Df5 <- rbind(Df, Df2)
+Df5
+rm(list = ls()[grepl("Df", ls())]) # Clean environment
+```
+
+### Aggregate
+
+People experienced with SQL generally want to run an aggregation and group by as one of their first tasks with R. `aggregate()` splits the data into subsets, computes summary statistics for each, and returns the result in a convenient form. 
+
+You will work with `diamonds`, a data set in the `ggplot2` package containing the prices and other attributes of almost 54,000 diamonds. `ggplot2` is a package authored and maintained by Hadley Wickham to `Create Elegant Data Visualisations Using the Grammar of Graphics'.
+```{r}
+library(ggplot2)
+head(diamonds)
+# average price for each type of cut
+aggregate(price ~ cut, diamonds, mean)
+aggregate(diamonds$price, list(diamonds$cut), mean)
+# do a manual check, using `subset()`
+s <- subset(diamonds, cut == 'Fair')
+mean(s$price)
+```
+
+Hence, with the above code we tell R to split the data set diamonds into subsets according to the values of the variable cut and to calculate the mean for each of the subsets. Let's break this code down to get a better grasp of what it does.
+1. `aggregate(x ~ SplitBy, Df, Function, ...)`
+  + `x ~ SplitBy`: We pass a formula which tells R to split the data frame Df according to the different values of the variable `SplitBy` and to pass the values of the variable `x` to the function `Function`.
+  + `Df`: The data frame to use.
+  + `Function`: The function that is computed on each of the subsets.
+  + `...` : Additional arguments that are passed to `Function`.
+  
+The ellipsis argument `...` is incredibly useful to pass arguments to the function. This way we are able to adjust the default arguments of the function that is used on each of the subsets. For example, when we have missing values for the variable price, we can tell R to remove these when computing the mean by setting `na.rm = TRUE`. The argument `na.rm` of the function `mean` takes a logical value indicating whether NA values should be stripped before the computation proceeds (see `?mean`)..
+
+```{r}
+# add arguments to the function called
+diamonds$price[sample(seq_len(nrow(diamonds)), 3, F)] <- NA
+aggregate(price ~ cut, diamonds, mean, na.action = NULL) # na.action is set to NULL for illustration purposes
+aggregate(price ~ cut, diamonds, mean, na.rm = TRUE, na.action = NULL)
+```
+
+The function `aggregate()` is often one of the first more 'complex' functions that you will use as a first-time user. If you are a bit confused, just try to play around with it a bit and have fun. Just load in the Pokémon data set from Kaggle (retrieved from https://www.kaggle.com/rounakbanik/pokemon) and play a bit with the aggregate function. Remember that it doesn't always have to be serious (unless you want to be the very best and catch 'em all).
+```{r}
+Pokemon <- read.csv("./data/pokemon.csv")
+Pokemon$capture_rate <- gsub(" .*", "", Pokemon$capture_rate)
+Pokemon$capture_rate <- as.numeric(Pokemon$capture_rate)
+head(aggregate(capture_rate ~ type1, Pokemon, mean))
+```
+
+
+Next to playing a bit around with the code, you also learn a great deal from other people's code and this is why we also included the following useful illustrations:
+```{r}
+s <- aggregate(price ~ cut, diamonds, mean)
+s
+dd <- merge(diamonds, s, by = "cut", sort = "FALSE")
+head(dd)
+head(diamonds)
+head(subset(dd, cut == "Very Good"))
+# change name of the column
+names(dd)[names(dd) == 'price.y'] <- 'average price'
+# add additional grouping variable
+aggregate(price ~ cut + color, diamonds, mean, na.rm = TRUE)
+# store results in an object
+res <- aggregate(price ~ cut + color, diamonds, mean, na.rm = TRUE)
+str(res)
+head(res)
+# aggregate two variables, combine with 'cbind'
+aggregate(cbind(price, carat) ~ cut, diamonds, mean)
+aggregate(cbind(price, carat) ~ cut + color, diamonds, mean)
+```
+
+## Exploratory Data Analysis (EDA)
+
+EDA is not a formal process with a strict set of rules. More than anything, EDA is a state of mind. During the initial phases of EDA you should feel free to investigate every idea that occurs to you. Some of these ideas will pan out, and some will be dead ends. As your exploration continues, you will home in on a few particularly productive areas that you'll eventually write up and communicate to others. (Quote from [@rds2016])
+
+### Exploring a numerical variable
+
+You will work with the `CPS1985` data from the `AER` package that accompanies [@AER2008].
+```{r, warning = FALSE, message = FALSE}
+library(AER)
+data("CPS1985")
+str(CPS1985)
+head(CPS1985) 
+summary(CPS1985$wage)
+```
+
+Let's start with the variable wage and quickly illustrate one of the dangers of using attach. The warning message tells us that, when we use the object `wage`, it will use the one that was created in our working directory/global environment.
+```{r}
+wage <- 25
+attach(CPS1985) # the warning message already tells you that it will use the object wage that was created before
+mean(wage)
+mean(CPS1985$wage)
+detach(CPS1985)
+# Use the function searchpaths() to see the 'hierarchy'
+```
+So instead of using attach, just use the `$` operator or export it to your global environment. If you don't want to type the full name of your data frame when using `$`, you can just rename it to something short such as `Df` and this makes typing `Df$Variable` a whole lot faster.
+
+
+```{r}
+# attach the data set; R knows where to find the variables
+wage <- CPS1985$wage
+summary(wage)
+is.numeric(wage)
+mean(wage)
+median(wage)
+fivenum(wage)	# Tukey's five number summary
+min(wage)
+max(wage)
+var(wage)
+sd(wage)
+hist(wage, freq = FALSE)
+hist(log(wage),
+     freq = FALSE,
+     nclass = 20,
+     col = "pink")
+lines(density(log(wage)), col = 4)
+```
+
+### Exploring a categorical (or: factor) variable
+
+```{r}
+occupation <- CPS1985$occupation
+str(occupation) # factor variable with 6 levels
+summary(occupation)
+nlevels(occupation)
+levels(occupation)
+```
+To compactify the output you will rename levels 2 and 6 of the factor variable 'occupation'.
+```{r}
+levels(occupation)[c(2, 6)] <- c("techn", "mgmt")
+summary(occupation)
+```
+Now you'll learn how to construct summary tables, barplots and pie charts in R.
+```{r}
+tab <- table(occupation)
+tab
+prop.table(tab)
+barplot(tab)
+pie(tab)
+pie(tab,col = gray(seq(0.4, 1.0, length = 6)))
+```
+
+### Exploring two categorical (or: factor) variables
+
+```{r}
+gender <- CPS1985$gender
+table(gender, occupation)
+prop.table(table(gender, occupation))
+prop.table(table(gender, occupation), 2)
+# use mosaic plot 
+plot(gender ~ occupation, data = CPS1985)
+```
+
+### Exploring one numerical and one categorical variable
+```{r}
+# here: apply 'mean(.)' to 'log(wage)' by 'gender'
+tapply(wage, gender, mean)
+options(digits=5)
+tapply(log(wage), list(gender, occupation), mean)
+# let's check these results
+# use subset(.) to extract part of the data
+s <- subset(CPS1985, select=c(gender, occupation, wage))
+s1 <- subset(s, gender == "female" & occupation == "technical")
+mean(log(s1$wage))
+```
+Now you'll build an appropriate visualization tool.
+```{r}
+# see e.g. http://www.r-bloggers.com/box-plot-with-r-tutorial/
+boxplot(log(wage) ~ gender)
+boxplot(log(wage) ~ gender + occupation, col="light blue")
+boxplot(log(wage) ~ gender + occupation, col="light blue", las=2)
+# make it a nice graph
+.pardefault <- par(no.readonly = T) # to store the default settings of par(.)
+boxplot(log(wage) ~ gender + occupation, col="light blue", las=2, par(mar = c(12, 5, 4, 2) + 0.1))
+par(.pardefault)
+```
+
+---
+
+## Exercises
+
+```{block get started data, type="learncheck", purl=FALSE}
+**_Learning check_**
+```
+1. Import the data set `na.txt` that is available in the folder 'data' that comes with the book.
+ + Use `read.table` and interpret the resulting data frame.
+ + Do you detect any problems (wrt missing values, strange observations)? Check for missing values using the `is.na` funtion applied to a variable from the `na` data set.
+ + If so, try solving those using the arguments of the `read.table` function. [Hint: check the argument `na.strings`] Check again for missing values.
+ + Make sure `female` is a factor variable (with two levels).
+ + Count the number of missing values per variable.
+
+2. (An exercise taken from [@AER2008]) "PARADE" is the Sunday newspaper magazine supplementing the Sunday or weekend edition of some 500 daily newspapers in the United States of America. An important
+yearly feature is an article providing information on some 120150 "randomly" selected
+US citizens, indicating their profession, hometown and state, and their yearly earnings.
+The Parade2005 (in library AER) data contain the 2005 version, amended by a variable
+indicating celebrity status (motivated by substantial oversampling of celebrities in these data). 
+For the Parade2005 data:
+ + Load the data `Parade2005` from the `AER` package, use `data("Parade2005")` to make the data accessible.
+ + Determine the mean earnings in California.
+ + Determine the number of individuals residing in Idaho.
+ + Determine the mean and the median earnings of celebrities. 
+ + Obtain boxplots of log(earnings) stratified by celebrity
+ + Plot the density of log(earnings), use `density`.
+ 
+3. You will almost always receive a clean data set when you have to use it for an assignment or when it's used in a course to illustrate something. In real-life, however, this will almost never be the case. There will be errors and it's important that you are able to handle these or at least notice these. Garbage in = Garbage out. So for this exercise, you have to look for inconsistencies in the data and use the basic data handling steps to solve them. We adjusted the state.x77 data set and you can find it in the data folder as the file States.csv. Load the package datasets, if you haven't already, and run the command `?state.x77` to obtain information on the variables.
+![](images/DirtyData.jpg)
+  + Import the csv file. Remember that there are multiple ways to import it and that a lot of things can go wrong (which is the goal of the exercise, we are terribly sorry). It's completely normal to get the error message `Error ... : more columns than column names`, since we did this on purpose. You will hate us now, but thank us later. Hint: `"\t"` is used for tab.
+  + Check if the file was imported correctly. Next to delimiters for the column values, there's also something called a decimal separator. As you might have expected, we also made sure that you cannot use the default argument here.
+  + Inspect the data frame and check if you notice something weird. Which variables contain some weird looking values?
+  + Some states claim that Jesus was executed in their state and that he resurrected. Can you find out which states claim to have witnessed this miracle? Use the function `pmax` to fix this problem.
+  + The population estimate is not correct for some states. Set these to `NA` and perform mean imputation for these cases (i.e. replace it with the mean of the available cases). Do the same for other variables with impossible/improbable values.
+  + The variables that had values replaced were Murder, Illiteracy, Population, Life.Exp and Area.
+```{block, type="learncheck", purl=FALSE}
+```
+
+<!--chapter:end:04-dataIntroduction.Rmd-->
+
+# Visualizing data in R {#data-viz}
+
+In this chapter you will learn the basics to build insightful graphics in R.
+
+## Basic plot instructions
+
+### Scatterplot
+Your starting point is the construction of a scatterplot. You'll work with the `Journals` data from the `AER` package.
+```{r}
+# load the 'Journals' data set in the AER package
+data("Journals")
+# scan the data
+head(Journals)
+names(Journals)
+# e.g. get variable 'price' 
+Journals$price
+summary(Journals$price)
+# focus on price of journal per citation
+Journals$citeprice <- Journals$price/Journals$citations
+```
+
+In the next block of code, we construct a scatterplot of the number of subscriptions versus the price per citation.
+```{r}
+with(Journals, plot(log(subs), log(citeprice)))
+with(Journals, rug(log(subs)))	# adds ticks, thus visualizing the marginal distributions of
+			# the variables, along one or both axes of an existing plot.		
+with(Journals, rug(log(citeprice), side = 2))
+# avoid "attach()" and "detach()"
+plot(log(subs) ~ log(citeprice), data = Journals)
+```
+
+R has many plotting options that allow you to flex a graph. For example, `pch` for the plotting character, `col` for the color of the plotting characters, `xlim` and `ylim` to adjust the limits on the x- and y-axis of the scatterplot. To add a legend, you can use the `legend()` function.
+
+```{r}
+plot(
+  log(citeprice) ~ log(subs),
+  data = Journals,
+  pch = 19,
+  col = "blue",
+  xlim = c(0, 8),
+  ylim = c(-7, 4),
+  main = "Library subscriptions"
+)
+rug(log(Journals$subs))
+rug(log(Journals$citeprice), side = 2)
+# subset data, look at journal entitled "Econometrica"
+journal <- "Econometrica"
+journal_info <- subset(Journals, title == journal)
+x.val <- log(journal_info$subs)
+y.val <- log(journal_info$citeprice)
+text(x.val, y.val, journal, pos = 2)
+legend("topright", "Individual observations", col = "blue", pch = 19)
+```
+
+You can even use your own images as plotting characters! In case you want to find out how you do this, just go to http://www.statisticstoproveanything.com/2013/09/using-custom-images-as-pch-values-in-r.html
+![](images/PlotCars.png)
+
+### Graphical parameters
+As briefly mentioned above, you have a lot of arguments to change the appearance of your plot. To see which ones you can adjust, go to the help file of `par`
+```{r}
+?par
+```
+
+Below are some illustrations that show which ones you can use. When you want to adjust something in your plot and can't immediately find it, just Google it and you will find lots of examples.
+
+```{r}
+x <- 1:10
+y <- exp(1:10)
+plot(x, y, type = "l", lwd = 3, lty = 2, col = "red")
+plot(x, y, bty = "n", cex = 3, cex.axis = 1.5, cex.lab = 2, las = 1, cex.main = 3, main = "Random plot")
+```
+
+When we want to adjust these graphical parameters globally, we can adjust them with the `par` function. Further, at the beginning of each session, it's always a good idea to save the initial parameter settings.
+```{r}
+Op = par(no.readonly = T) # Save initial parameter settings
+par()$mar                 # Check current setting
+par(mar = c(5, 5, 2, 2) + 0.1, mgp = c(4, 1, 0), cex = 1.5, cex.axis = 1.1, cex.lab = 1.25, las = 1, cex.main = 1.5)
+plot(x, y, main = "Random plot")
+par(Op)                   # Change back to default settings
+```
+
+When we want to have two plots side-by-side, we can adjust the `mfrow` parameter.
+```{r}
+par(mfrow = c(1, 2))
+plot(x, y)
+plot(x, sqrt(x))
+par(Op)
+```
+Alternatively, we can make use of the `layout` function.
+```{r}
+m <- rbind(c(1, 1, 2, 2),
+           c(4, 3, 3, 5))
+layout(m)
+layout.show(5)
+plot(x, y)
+plot(x, sqrt(x))
+plot(x, log(x))
+layout(1)
+```
+
+
+
+### Exporting the scatterplot
+
+It is often very useful to directly export your customized graph. Certainly when submitting the plot for a paper, we need to be able to export it to a file that they accept. Some of the basic formats that (base) R supports are BMP, JPEG, PNG, TIFF, PDF and PS  files.
+```{r}
+?png
+?grDevices
+```
+
+We can, for example, save a plot as pdf using the following code.
+```{r, eval=FALSE}
+path <- tempdir()
+graph.path <- file.path(path, "myfile.pdf")
+pdf(graph.path, height = 5, width = 6)
+	plot(log(citeprice)~log(subs), data = Journals, pch = 19, col = "blue", xlim =   
+	       c(0, 8), ylim = c(-7, 4),
+	main = "Library subscriptions")
+	rug(log(Journals$subs))
+	rug(log(Journals$citeprice),side=2)
+	journal <- "Econometrica"
+  journal_info <- subset(Journals, title==journal)
+  x.val <- log(journal_info$subs)
+  y.val <- log(journal_info$citeprice)
+  text(x.val, y.val, journal, pos=2)
+dev.off()
+```
+
+To save the plot as a PNG file, we use the `png` function. In this function, we can adjust the resolution of the plot by adjusting the `res` argument.
+```{r, eval = FALSE}
+graph.path <- tempfile(fileext = ".png")
+png(graph.path, height = 7.5e2 * 3, width = 3e3, res = 300)
+par(cex.axis = 1.25, cex.lab = 1.5, cex.main = 1.75, cex = 1.5)
+	plot(log(citeprice)~log(subs), data = Journals, pch = 19, col = "blue", xlim =   
+	       c(0, 8), ylim = c(-7, 4),
+	main = "Library subscriptions")
+	rug(log(Journals$subs))
+	rug(log(Journals$citeprice),side=2)
+	journal <- "Econometrica"
+  journal_info <- subset(Journals, title==journal)
+  x.val <- log(journal_info$subs)
+  y.val <- log(journal_info$citeprice)
+  text(x.val, y.val, journal, pos=2)
+dev.off()
+opendir(graph.path)
+```
+
+
+### The `curve()` function
+
+This function draws a curve corresponding to a function over the interval [from, to]. 
+
+```{r}
+curve(dnorm, from = -5, to = 5, col = "slategray", lwd = 3, main = "Density of the standard normal distribution")
+text(-5, 0.3, expression(f(x) == frac(1, sigma ~~ sqrt(2*pi)) ~~ e^{-frac((x - mu)^2, 2*sigma^2)}), adj = 0)
+?plotmath
+```
+
+---
+
+## More fancy plots 
+
+R has many dedicated packages for advanced plotting. You will work with two of them in this Section.
+
+### Creating graphics with `ggplot2` 
+
+`ggplot2` is a package created and maintained by prof. Hadley Wickham, it's aim is to Create Elegant Data Visualisations Using the Grammar of Graphics. Here is the basic explanation of how `ggplot2` works from [@rds2016].
+
+With `ggplot2`, you begin a plot with the function `ggplot()`. `ggplot()` creates a coordinate system that you can add layers to. The first argument of `ggplot()` is the dataset to use in the graph. So `ggplot(data = mpg)` or `ggplot(mpg)` creates an empty graph. 
+
+You complete your graph by adding one or more layers to `ggplot()`. The function `geom_point()` adds a layer of points to your plot, which creates a scatterplot. `ggplot2` comes with many geom functions that each add a different type of layer to a plot. 
+
+Each geom function in `ggplot2` takes a mapping argument. This defines how variables in your dataset are mapped to visual properties. The mapping argument is always paired with `aes()`, and the $x$ and $y$ arguments of `aes()` specify which variables to map to the $x$ and $y$ axes. `ggplot2` looks for the mapped variable in the data argument, in this case, `mpg`.
+
+
+```{r}
+library(ggplot2)
+
+# use default theme
+ggplot(data = mtcars, mapping = aes(x = hp, y = mpg)) +
+  geom_point(shape=1, alpha = 1/2)+
+  geom_smooth() 
+# shorter
+ggplot(mtcars, aes(x = hp, y = mpg)) +
+  geom_point(shape=1, alpha = 1/2)+
+  geom_smooth() 
+# use black and white lay-out
+ggplot(mtcars, aes(x = hp, y = mpg)) + theme_bw() +
+  geom_point(shape=1, alpha = 1/2)+ 
+  geom_smooth() 
+```
+
+You can add a third variable to a two dimensional scatterplot by mapping it to an aesthetic. An aesthetic is a visual property of the objects in your plot. Aesthetics include things like the size, the shape, or the color of your points. You can display a point in different ways by changing the values of its aesthetic properties. 
+
+```{r}
+ggplot(mtcars, aes(x = hp, y = mpg))+
+  geom_point(mapping = aes(color = gear))
+```
+
+Or you could have mapped this variable to the alpha aesthetic, which controls the transparency of the points, or the shape of the points.
+
+```{r}
+ggplot(mtcars, aes(x = hp, y = mpg))+
+  geom_point(mapping = aes(alpha = gear))
+
+ggplot(mtcars, aes(x = hp, y = mpg))+
+  geom_point(mapping = aes(size = gear))
+```
+
+You'll now construct a boxplot of `mpg` per `cyl` using `ggplot()`.
+```{r}
+ggplot(mtcars, aes(factor(cyl), mpg))+
+  geom_boxplot() + geom_jitter() + theme_bw()
+```
+Another way to code the same example
+```{r}
+p <- ggplot(mtcars, aes(factor(cyl), mpg))
+p + geom_boxplot() + geom_jitter() + theme_bw()
+```
+
+### Fancy correlation plots
+
+You use the package `corrplot` to visualize correlations between variables. For more examples, see [corrplot]( http://cran.r-project.org/web/packages/corrplot/vignettes/corrplot-intro.html).
+
+```{r}
+library(corrplot)
+# get correlation matrix
+M <- cor(mtcars)
+str(M)
+M
+# visualize the correlation structure
+corrplot(M, method = "circle")
+corrplot(M, method = "square")
+corrplot(M, method = "color")
+corrplot(M, type = "upper")
+corrplot(M, type = "upper", method = "square")
+```
+
+---
+
+## Exercises
+
+```{block data viz, type="learncheck", purl=FALSE}
+**_Learning check_**
+```
+1. Use the Danish fire insurance losses. Plot the arrival of losses over time. Use `type= "l"` for a line plot, label the $x$ and $y$-axis, and give the plot a title using `main`.
+
+2. Do the same with instructions from `ggplot2`. Get inspiration from [R for Data Science](http://r4ds.had.co.nz/data-visualisation.html) and use `geom_line()` to create the line plot.
+
+3. Use the data set 'car_price.csv' available in the documentation.
+  + Import the data in R.
+  + Explore the data.
+  + Make a scatterplot of price versus income, use basic plotting instructions and use `ggplot2`.
+  + Add a smooth line to each of the plots (using `lines` to add a line to an existing plot and `lowess` to do scatterplot smoothing and using `geom_smooth` in the `ggplot2` grammar).
+  
+4. Use the `mpg` data set. Work through the following steps. The data contains observations collected by the US Environment Protection Agency on 38 models of car.
+  + Explore the data.
+  + Plot `displ`, a car's engine size, in litres on the $x$-axis and `hwy`, on the $y$-axis, that is the car's fuel efficiency on the highway, in miles per gallon (mpg). 
+  + Now do the same but use different colors for the points, based on the `class` variable in `mpg`. Add a smooth line.
+  
+```{block, type="learncheck", purl=FALSE}
+```
+
+<!--chapter:end:05-dataVisualization.Rmd-->
+
+# Data wrangling in R {#data-wrangling}
+
+For advanced, and fast, data handling with large R objects and lots of flexibility, two lines of work are available:
+
+* the RStudio line (with Hadley Wickham) offering the packages from the `tidyverse`: see [tidyverse](https://www.tidyverse.org/)
+* the `data.table` line developed by Matt Dowle, see e.g. [DataCamp's course on `data.table`](https://www.datacamp.com/courses/data-table-data-manipulation-r-tutorial).
+
+Both have a very specific syntax, with a demanding learning curve. 
+
+## Ideas from the `tidyverse`
+
+### A `tibble` instead of a `data.frame`
+
+Within the `tidyverse` tibbles are a modern take on data frames. They keep the features that have stood the test of time, and drop the features that used to be convenient but are now frustrating (i.e. converting character vectors to factors). (Quote from [tibble vignette](https://cran.r-project.org/web/packages/tibble/vignettes/tibble.html)) You can use `tibble` to create a new tibble and `as_tibble` transforms an object (e.g. a data frame) into a `tibble`.
+
+```{r}
+library(ggplot2)
+diamonds
+```
+
+### Pipes in R
+
+Read the story behind the pipe operator in R in this tutorial from DataCamp [pipes in R](https://www.datacamp.com/community/tutorials/pipe-r-tutorial). In R, the pipe operator is `%>%`. You can think of this operator as being similar to the `+` in a `ggplot2` statement, as introduced in Chapter \@ref(data-viz). It takes the output of one statement and makes it the input of the next statement. When describing it, you can think of it as a "THEN".
+
+### Filter observations using `filter`
+
+Here is a first example of using the pipe in R.
+```{r}
+library(ggplot2)
+library(dplyr)
+diamonds %>% filter(cut == "Ideal")
+```
+
+The code chunk above will translate to something like "you take the `diamonds` data, then you subset the data". 
+This is one of the most powerful things about the tidyverse. In fact, having a standardized chain of processing actions is called "a pipeline". 
+
+Here is another example where you now filter diamonds based on two characteristics.
+```{r}
+diamonds %>% filter(cut == "Ideal" & color == "E")
+diamonds %>% filter(cut == "Ideal" & color %in% c("E", "D"))
+```
+
+### Summarize variables using `summarize`
+
+The code chunk below will translate to something like "you take the `diamonds` data, then you subset the data and then you calculate mean and standard deviation of these data". 
+```{r}
+diamonds %>% filter(cut == "Ideal") %>% summarize(mean = mean(price), std_dev = sd(price))
+```
+
+### Summarize based on groupings of another variable
+
+So, here is what you'd like to do.
+```{r}
+# base R way with aggregate
+aggregate(price ~ cut, diamonds, mean)
+```
+How can you do this with the pipe?
+```{r}
+diamonds %>% group_by(cut) %>% summarize(mean = mean(price))
+```
+Now you want to group by multiple variables.
+```{r}
+diamonds %>% group_by(cut, color) %>% summarize(price = mean(price))
+```
+
+Now you want to calculate multiple metrics.
+```{r}
+diamonds %>% group_by(cut) %>% summarize(price = mean(price), carat = mean(carat))
+```
+And finally, multiple metrics and multiple grouping variables.
+```{r}
+diamonds %>% group_by(cut, color) %>% summarize(price = mean(price), carat = mean(carat))
+```
+
+### Joining tibbles
+
+Now you want to add the mean price and mean carat per `cut` to the original tibble. You use the variable `cut` as the key to identify observations. 
+```{r}
+d <- diamonds %>% group_by(cut) %>% summarize(price = mean(price), carat = mean(carat))
+new_diamonds <- diamonds %>% inner_join(d, by = "cut")
+View(diamonds)
+View(new_diamonds)
+```
+
+---
+
+## Data science the `data.table` way
+
+### Speed junkies love `data.table`
+
+`data.table` is a package designed for speed junkies. "The R `data.table` package is rapidly making its name as the number one choice for handling large datasets in R." It extends and exchanges the functionality of the basic `data.frame` in R. The syntax is different and you'll have to get used to it. A `data.table` cheat sheet is available [here](https://s3.amazonaws.com/assets.datacamp.com/img/blog/data+table+cheat+sheet.pdf).
+
+### What is a `data.table`?
+
+Here you see some basic illustrations with the `diamonds` data.
+
+```{r}
+library(data.table)
+library(ggplot2)
+str(diamonds)
+diamonds_DT <- data.table(diamonds)
+diamonds_DT # notice intelligent printing of this DT
+summary(diamonds_DT$cut)
+```
+
+### Identify keys
+Instead of using `subset` from the `base` R, you will use the `setkey` to extract the observations you want to have.
+```{r}
+# key is used to index the data.table and will provide the extra speed
+setkey(diamonds_DT, cut)
+tables()
+diamonds_DT[J("Ideal"), ]
+# more than one column can be set as key
+setkey(diamonds_DT, cut, color)
+tables()
+# access rows according to both keys, use function 'J'
+diamonds_DT[J("Ideal", "E"), ]
+diamonds_DT[J("Ideal", c("E", "D")), ]
+# what would be the alternative with base R?
+subset(diamonds, diamonds$cut == "Ideal" && diamonds$color == c("E", "D"))
+```
+
+
+### Alternative and faster ways to `aggregate`
+
+Instead of using `aggregate` from the `base` R, you will identify the `by` variable(s).
+
+```{r}
+# base R way with aggregate
+aggregate(price ~ cut, diamonds, mean)
+system.time(aggregate(price ~ cut, diamonds, mean))
+# aggregation with data.table
+# will go faster thanks to indexing
+diamonds_DT[ , mean(price), by=cut]
+system.time(diamonds_DT[ , mean(price), by=cut])
+# give variable names in the create date.table
+diamonds_DT[ , list(price = mean(price)), by=cut]
+# aggregate on multiple columns
+diamonds_DT[ , mean(price), by=list(cut,color)]
+# aggregate multiple arguments
+diamonds_DT[ , list(price = mean(price), carat = mean(carat)), by = cut]
+diamonds_DT[ , list(price = mean(price), carat = mean(carat), caratSum = sum(carat)), by=cut]
+# multiple metrics and multiple grouping variables
+diamonds_DT[ , list(price = mean(price), carat = mean(carat)), by = list(cut, color)]
+```
+
+
+### Joining `data.tables`
+
+How to join `data.tables`?
+```{r}
+# join two data.tables
+d <- diamonds_DT[ , list(price = mean(price), carat = mean(carat)), by = cut]
+d
+setkey(diamonds_DT, cut)
+dmerge <- diamonds_DT[d]
+dmerge
+```
+
+---
+
+## Exercises
+
+```{block data wrangling, type="learncheck", purl=FALSE}
+**_Learning check_**
+```
+
+1. (An exercise taken from [@AER2008]) "PARADE" is the Sunday newspaper magazine supplementing the Sunday or weekend edition of some 500 daily newspapers in the United States of America. An important
+yearly feature is an article providing information on some 120150 "randomly" selected
+US citizens, indicating their profession, hometown and state, and their yearly earnings.
+The Parade2005 (in library AER) data contain the 2005 version, amended by a variable
+indicating celebrity status (motivated by substantial oversampling of celebrities in these data). 
+For the Parade2005 data and by using `%>%` answer the following questions.
+ + Load the data `Parade2005` from the `AER` package, use `data("Parade2005")` to make the data accessible.
+ + Determine the mean earnings in California.
+ + Determine the number of individuals residing in Idaho.
+ + Determine the mean and the median earnings of celebrities. 
+
+```{block, type="learncheck", purl=FALSE}
+```
+
+<!--chapter:end:06-dataWrangling.Rmd-->
+
+# Working with probability distributions in R {#probs}
+
+In this Section you'll learn how to work with probability distributions in R. Before you start, it is important to know that for many standard distributions R has 4 crucial functions: 
+
+* Density: e.g. `dexp`, `dgamma`, `dlnorm`
+* Quantile: e.g. `qexp`, `qgamma`, `qlnorm`
+* Cdf: e.g. `pexp`, `pgamma`, `plnorm`
+* Simulation: e.g. `rexp`, `rgamma`, `rlnorm`
+
+The parameters of the distribution are then specified in the arguments of these functions. Below are some examples from Katrien's course on Loss Models at KU Leuven.
+
+## Discrete distributions
+
+### The binomial distribution
+
+```{r}
+nSim 	   <- 100
+p        <- 0.3
+n	       <- 6
+
+# generate 'nSim' obs. from Bin(n,p) distribution 
+data_binom <- rbinom(nSim, n, p)
+
+# calculate mean and variance
+mean(data_binom) # empirical mean
+var(data_binom)  # empirical variance
+
+n*p 		      # theoretical mean
+n*p*(1-p)	    # theoretical variance
+
+# visualize
+range <- seq(-1,n,1/1000)
+plot(ecdf(data_binom))   # ecdf
+lines(range,pbinom(range, n, p), col = 'red') # cdf
+
+par(mfrow=c(1,2))
+plot(0:n, dbinom(0:n, n, p), type = 'h') # pdf
+plot(prop.table(table(data_binom)))
+par(mfrow=c(1,1))
+```
+
+### The Poisson distribution
+
+```{r}
+nSim 	 <- 100
+lambda <- 1
+
+# generate 'nSim' observations from Poisson(\lambda) distribution
+data_pois <- rpois(nSim, lambda)
+
+# calculate mean and variance
+mean(data_pois) # empirical mean
+var(data_pois)  # empirical variance
+
+lambda	    # theoretical mean
+lambda	    # theoretical variance
+
+# visualize
+range  <- seq(0,8, 1/1000)
+plot(ecdf(data_pois))   # ecdf
+lines(range,ppois(range, lambda), col = 'red') # cdf
+
+par(mfrow=c(1,2))
+plot(0:8, dpois(0:8, lambda), type = 'h') # pdf
+plot(prop.table(table(data_pois)))
+par(mfrow=c(1,1))
+```
+
+---
+
+## Continuous distributions
+
+### The normal distribution
+
+```{r}
+# evaluate cdf of N(0,1) in 0
+pnorm(0, mean=0, sd=1)
+# or shorter
+pnorm(0, 0, 1)
+# 95% quantile of N(0,1) 
+qnorm(0.95, mean=0, sd=1)
+# a set of quantiles
+qnorm(c(0.025, 0.05, 0.5, 0.95, 0.975), 0, 1)
+# generate observations from N(0,1)
+x <- rnorm(10000, mean=10, sd=1)
+# visualize
+hist(x, probability=TRUE, nclass=55, col="pink")
+curve(dnorm(x, mean=10, sd=1), xlim=range(x), col="black",add=TRUE)
+```
+
+
+### The gamma distribution
+
+```{r}
+# check parametrization of gamma density in R
+? dgamma
+# grid of points to evaluate the gamma density
+x <- seq(from = 0, to = 20, by = 0.001)
+# choose a color palette
+colors <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+# shape and rate parameter combinations shown in the plot
+shape <- c(1, 2, 3)
+rate <- c(0.5, 0.5, 0.5)
+plot(x, dgamma(x, shape = shape[1], rate = rate[1]), type='l', xlab ='x', ylab='Gamma density', main='Effect of the shape parameter on the Gamma density')
+for(i in 2:length(shape)){
+    lines(x, dgamma(x, shape = shape[i], rate = rate[i]), col=colors[i])
+}
+# add a legend  
+legend("topright", paste("shape = ", shape, ", rate = ", rate, sep=""), col = colors, lty=1)
+```
+
+--- 
+
+## Exercises
+
+```{block prob_dist, purl=FALSE}
+**_Learning check_**
+```
+
+1. Generating random numbers, tossing coins. 
++ Set your seed to 1 and generate 10 random numbers (between 0 and 1) using `runif` and save these numbers in an object called `random_numbers`.
++ Using the function `ifelse` and the object `random_numbers` simulate coin tosses. Hint: if `random_numbers` is bigger than 0.5 then the result is head, otherwise it is tail.
++ Another way of generating random coin tosses is by using the `rbinom` function. Set the seed again to 1 and simulate with this function 10 coin tosses. 
+
+2. Simulate samples from a normal distribution. Imagine a population in which the average height is 1.7m with a standard deviation of 0.1. 
++ Using `rnorm` simulate the height of 100 people and save it in an object called `heights`.
++ To get an idea of the values in `heights` apply the function `summary` to it.
++ What is the probability that a person will be smaller or equal to 1.9m? Use `prnorm`.
++ What is the probability that a person will be taller or equal to 1.6m? Use `pnorm`.
+
+3. The waiting time (in minutes) at a doctor's clinic follows an exponential distribution with a rate parameter of 1/50. 
++ Use the function `rexp` to simulate the waiting time of 30 people at the doctor's office. 
++ What is the probability that a person will wait less than 10 minutes? Use `pexp`.
++ What is the waiting time average?
+
+```{block, purl=FALSE}
+```
+
+
+<!--chapter:end:07-probabilityDistributions.Rmd-->
+
+# Writing functions in R {#functions}
+
+## Conditionals and control flow
+
+In this chapter you'll learn about relational operators to compare R objects and logical operators to combine logical expressions. Next, you'll use this knowledge to build conditional statements. [Quote from DataCamp's `Intermediate R' course]
+
+Make sure not to mix up `==` and `=`, where the latter is used for assignment and the former checks equality (see Section \@ref(subsec:Objects)). 
+```{r}
+3 == (2 + 1)
+"intermediate" != "r"
+TRUE != FALSE
+"Rchitect" != "rchitect"
+```
+
+Now you'll focus on inequalities.
+```{r}
+(1 + 2) > 4
+"dog" < "Cats"
+TRUE <= FALSE
+```
+
+For string comparison, R determines the greater than relationship based on alphabetical order. Also, keep in mind that `TRUE` corresponds to 1 in R, and `FALSE` coerces to 0 behind the scenes. 
+
+R's relational operators also work on vectors.
+```{r}
+katrien <- c(19, 22, 4, 5, 7)
+katrien > 5
+jan <- c(34, 55, 76, 25, 4)
+jan <= 30
+```
+---
+
+## Logical operators
+
+We already discussed the logical operators in Chapter \@ref(objects-data-types), so you already know the basics. Can you predict what the outcome will be of the following statements?
+
+```{r, eval = FALSE}
+TRUE & TRUE
+FALSE | TRUE
+5 <= 5 & 2 < 3
+3 < 4 | 7 < 6
+```
+
+The logical operators applied to vectors
+
+```{r}
+katrien > 5 & jan <= 30
+```
+
+## Conditional statements
+We encounter conditional statements on a daily basis. Just think of the following behavior that perfectly illustrates this.
+
+```{r}
+FunnyJoke <- TRUE
+if(FunnyJoke) {
+  cat("Hahahaha =D")
+} else {
+  cat("*Cough* awkward silence...")
+}
+FunnyJoke <- FALSE
+if(FunnyJoke) {
+  cat("Hahahaha =D")
+} else {
+  cat("*Cough* awkward silence...")
+}
+```
+With this, we illustrated the basic concept of a conditional statement and with it, a conditional execution. We basically read this code as `if` this statement is `TRUE` then we do this. If it is `FALSE`, we do another thing. With the above example, it is quite obvious. If the joke is funny, we laugh. If not, an awkward silence follows.
+
+![](images/ifelse.jpeg)
+
+We can also just use the `if` without specifying `else` (make sure your volume is not at max when running this code and wearing a headphone).
+```{r, eval = FALSE}
+SoundCheck <- TRUE
+if(SoundCheck) {
+  beepr::beep(8)
+}
+```
+
+We can also use the function `ifelse`, which is a vectorized version of the `if`/`else` construct [@introRbookdown].
+
+```{r}
+FunnyJoke <- c(TRUE, FALSE)
+CondTRUE  <- "Hahaha =D"
+CondFALSE <- "*Cough* awkward silence..."
+ifelse(FunnyJoke, CondTRUE, CondFALSE)
+```
+When using the `ifelse()` function, you have to make sure that you know what it does. `ifelse(test, yes, no)` returns a vector of the same length as `test`, with elements `yes[i]` when `test[i]` is `TRUE` and `no[i]` when `test[i]` is `FALSE`. This might sound confusing, so let's just illustrate it with an example.
+
+```{r}
+a <- -1:1
+b <- rep("< 0", length(a))
+c <- rep(">= 0", length(a))
+ifelse(a < 0, b, c)
+```
+<!-- This is all very logical when you're reading this, but as always with coding, things can go wrong quickly when you don't pay attention. Suppose you have a data frame with variables `x` and `y`. When the value for `x` is negative, you want to take the maximum of `x` and `y`. If `x >= 0`, then you want to keep the value of  -->
+<!-- ```{r} -->
+<!-- df <- data.frame(x = -5:5, y = 10:0) -->
+<!-- with(df, ifelse(x <= 0, max(x, y), x)) -->
+<!-- ``` -->
+
+We can also use multiple nested `if` ... `else` statements.
+
+```{r, eval = FALSE}
+ShellExec  <- function(x) {
+      # replacement for shell.exe (doesn't exist on MAC)
+      if (exists("shell.exec",where = "package:base"))
+            return(base::shell.exec(x))
+      comm <- paste("open",x)
+      return(system(comm))
+}
+Samples <- 1:3
+SampleVideo <- sample(Samples, 1, FALSE)
+OpenVid <- 
+  if(SampleVideo == 1) {
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  } else if(SampleVideo == 2) {
+    "https://www.youtube.com/watch?v=CsGYh8AacgY&t=12s"
+  } else {
+    "https://www.youtube.com/watch?v=1g9sneS2MF4" 
+  }
+ShellExec(OpenVid)
+SampleVideo <- sample(Samples[!1:3 %in% SampleVideo], 1, FALSE)
+```
+
+
+---
+
+## Loops 
+
+When we have to perform a repetitive task, loops are the way to go. This repetitive task is then executed within each loop for a specified number of times or until a specific condition is met. Within R, there are three main types of loops, the `for` loop, the `while` loop and the `repeat` loop \@cite(introRbookdown).
+
+### The for loop
+The `for` loop is the most well known loop and also one of the most common loops within programming languages. The following example illustrates how `for` loops work.
+
+```{r}
+for(i in 1:5) {
+  print(i)
+}
+```
+
+In this example, we *loop* over the vector `1:5` and `i` is used as an index or counter. The inner part of the `for` loop is then repeated for every iteration. Breaking it down to the basics, we tell R to repeat the inner part (i.e. the code within the curly braces `{}`) 5 times (`length(1:5)`), taking subsequent values of the vector `1:5` in every loop and to keep track of the iteration with `i`. 
+
+Hence, for the first iteration, `i` gets the first value of the vector `1:5` which is `1` and runs the code `print(i)`. In the second iteration, it gets the value `2` and so on.
+
+<!-- ![](images/ForLoopAdj.png) ![](images/ForLoopSimpsons.png)  -->
+
+```{r image_grobs, fig.width = 5, fig.height = 5, fig.show = "hold", out.width  =  "50%", echo = FALSE, fig.align = "center"}
+knitr::include_graphics(c("images/ForLoopAdj.png", "images/ForLoopSimpsons.png"))
+```
+
+
+
+The counter is not limited to `i`, but basically every valid name can be used. Can you guess what the following output will be?
+```{r}
+primes <- c(2, 3, 5, 7, 11, 13)
+
+# loop version 1
+for (p in primes) {
+  print(p)
+}
+```
+
+When working with loops, we have to be careful to not get stuck in an infinite loop. Even though this is more common in `while` loops, this can also happen in `for` loops.
+![](images/InfiniteLoop.png)
+
+For example, when we adjust the counter `i` in the inner part, we get stuck in an infinite loop. One way to get out of this loop, is by using the `break` statement.
+
+```{r}
+LoopIter <- 1
+for(i in 1:3) {
+  i <- 1
+  print(i)
+  LoopIter <- LoopIter + 1
+  if(LoopIter > 5)
+    break
+}
+```
+
+Consequently, when using a for loop, make sure that you don't adjust the counter variable `i` that keeps track of the iterations! To make sure that everything goes as expected in the inner part of your `for` loop, you can always run a test by first creating `i <- 1` (or whatever value of the vector you are looping over) for example and then run the inner part.
+
+To save the results of each iteration, we can basically use any data structure. A list is most often used, as its structure is quite intuitive to save the results of our loop. To save our results in this way, we create an empty list. Let's work with the data base `birthwt` from the package `MASS`
+
+```{r}
+library(MASS)
+bwt <- with(birthwt, {
+race <- factor(race, labels = c("white", "black", "other"))
+ptd <- factor(ptl > 0)
+ftv <- factor(ftv)
+levels(ftv)[-(1:2)] <- "2+"
+data.frame(low = factor(low), age, lwt, race, smoke = (smoke > 0),
+           ptd, ht = (ht > 0), ui = (ui > 0), ftv)
+})
+```
+
+
+```{r}
+Cols      <- colnames(bwt)
+DescrVars <- list()
+for(Var in Cols) {
+  x <- bwt[, Var]
+  DescrVars[[Var]] <- 
+    if(is.numeric(x)) {
+      mean(x)
+    } else {
+      table(x)
+    }
+}
+DescrVars
+```
+
+When using loops, it is also important to try to be as efficiently as possible by avoiding repetition within the loop. Try to avoid recomputing the same thing within the same loop. This is why we use `x <- bwt[, Var]` in the above example and not
+```{r, eval = FALSE}
+DescrVars <- list()
+for(Var in Cols) {
+  DescrVars[[Var]] <- 
+    if(is.numeric(bwt[, Var])) {
+      mean(bwt[, Var])
+    } else {
+      table(bwt[, Var])
+    }
+}
+```
+
+By avoiding repetition, the code will run faster and this will be more important when working with large inner functions or large data sets. In addition, the chance of a coding error is also smaller in this case.
+
+#### Nested for loops
+We can also use a `for` loop within another `for` loop and that's what we called nested `for` loops. For example,
+
+
+```{r}
+Alph = matrix(letters[1:4], nrow = 2)
+for(j in 1:ncol(Alph)) {
+  for(i in 1:nrow(Alph)) {
+    cat(paste0("\nAlph[",i, ", ", j , "]  = ", Alph[i, j], "\n"))
+  }
+}
+```
+To save the results of nested loops, lists are the perfect type of object. In order to be able to save the results in an empty list (which does not have the nested structure yet), we have to use names when saving these in the slots of the list.
+
+```{r}
+Results <- list()
+for(j in seq_len(ncol(Alph))) {
+  for(i in seq_len(nrow(Alph))) {
+    Results[[paste0("Column", j)]][[paste0("Row", i)]] <- paste0("Alph[",i, ", ", j , "]  = ", Alph[i, j])
+  }
+}
+Results
+```
+
+Alternatively, we can already specify the dimensions of the nested list using the following code.
+```{r}
+Results <- list(vector("list", 2), vector("list", 2)) # Create an empty nested list
+for(j in seq_len(ncol(Alph))) {
+  for(i in seq_len(nrow(Alph))) {
+    Results[[j]][[i]] <- paste0("Alph[",i, ", ", j , "]  = ", Alph[i, j])
+  }
+}
+Results
+```
+
+### The while loop
+
+With a `while` loop, you repeat the inner part until some logical condition is met.
+```{r, eval = FALSE}
+while(LogicalCondition) {
+  DoSomething("ButIDon'tKnowWhat")
+}
+```
+
+Take, for example, that we have 64 tasks on our to-do list and we want to get at least 5 tasks done for today.
+```{r}
+todo <- 10
+
+while (todo > 5) {
+  cat(todo, "tasks left\n")
+  todo <- todo - 1
+}
+todo
+```
+
+Another example is the following.
+```{r}
+Tired <- TRUE
+Sleep <- 0
+while(Tired) {
+  Sleep <- Sleep + 1
+  if(Sleep >= 8)
+    Tired <- FALSE
+}
+Tired
+```
+As with `for` loops, we can also use the `break` statement to stop the loop.
+
+```{r}
+Tired <- TRUE
+Sleep <- 0
+while(Tired) {
+  Sleep <- Sleep + 1
+  if(Sleep >= 8)
+    break
+}
+Sleep
+```
+The example below puts many things together (taken from DataCamp's `Intermediate R' course).
+```{r}
+i <- 1
+
+while (i <= 10) {
+  print(3 * i)
+  if ( (3 * i) %% 8 == 0) {
+    break
+  }
+  i <- i + 1
+}
+```
+
+The `repeat` loop is similar to the `while` loop, but has no conditional check [@introRbookdown]. So in this case, you have to make sure that you don't get stuck in an infinite loop by building in a `break` statement.
+
+```{r}
+i <- 0
+repeat {
+  print("Eat")
+  print("Sleep")
+  print("Rave")
+  print("Repeat")
+  i <- i + 1
+  if(i >= 3)
+    break
+}
+```
+
+
+
+---
+
+## Functions in R
+The book 'An Introduction to R' [@introRbookdown] gives a splendid (and funny) description of functions:  
+*Functions are your loyal servants, waiting patiently to do your bidding to the best of their ability. They’re made with the utmost care and attention … though sometimes may end up being something of a Frankenstein’s monster - with an extra limb or two and a head put on backwards. But no matter how ugly they may be, they’re completely faithful to you.*  
+
+*They’re also very stupid.*
+
+### Using a function
+Throughout this book, we have already been using functions, but what exactly is a function? Let's start from a classic one, the `mean()` function.
+```{r}
+? mean
+help(mean)
+args(mean)
+```
+
+Basically, we give input to this function and it will return the arithmetic mean. In `mean(x, trim = 0, na.rm = FALSE, ...)` `x` is required; if you do not specify it, R will throw an error. This is a good thing, because you of course need to tell R of what object you want to compute the mean. Here, `x` is an argument of the function `mean()` and with `mean(x = a)`, you tell R to compute the mean of the object `a`. `trim` and `na.rm` are optional arguments: they have a default value which is used if the arguments are not explicitly specified. [Quote from DataCamp's 'Intermediate R' course.]
+
+You will now use the `mean` function as follows
+```{r}
+katrien <- c(2, 9, 6, 8, NA)
+
+mean(katrien)
+
+mean(katrien, na.rm = TRUE)
+```
+
+Functions return objects that can be used elsewhere. As such, you can use a function within function. 
+```{r}
+katrien <- c(2, 9, 6, 8, NA)
+jan <- c(0, 3, 2, NA, 5)
+katrien - jan
+mean(abs(katrien - jan), na.rm = TRUE)
+```
+
+
+### Write your own function
+The ability to use self-written functions makes R incredibly powerful, efficient, convenient and elegant. Once you learn how to write your own functions, programming with R will be even more comfortable and productive [@introR].
+
+Creating a function in R is basically the assignment of a function object to a variable. That's why you will use the assignment operator `<-`. The basic form of a function is given by (slightly altered example and text from [@introRbookdown]):
+```{r, eval = FALSE}
+NameFunction <- function(Argument1, Argument2) {
+  Expression
+}
+```
+
+With this code, we are telling R that we want to create an object of type **function** and that we want to give it the name `NameFunction`. As input, it takes `Argument1` and `Argument2` and it then performs the inner part of the function which is denoted by `Expression`.
+
+As always, it's easier to comprehend this with an example.
+
+```{r}
+my_sqrt <- function(x) {
+  sqrt(x)
+}
+
+# Use the function
+my_sqrt(12)
+my_sqrt(16)
+
+sum_abs <- function(x, y) {
+  abs(x) + abs(y)
+}
+
+# Use the function
+sum_abs(-2, 3)
+```
+
+You can define default argument values in your own R functions as well. Here you see an example.
+```{r}
+my_sqrt <- function(x, print_info = TRUE) {
+  y <- sqrt(x)
+  if (print_info) {
+    print(paste("sqrt", x, "equals", y))
+  }
+  return(y)
+}
+
+# some calls of the function
+my_sqrt(16)
+my_sqrt(16, FALSE)
+my_sqrt(16, TRUE)
+```
+
+R works in a vectorized way and most of R's functions are vectorized. This means that the function will operate on all elements of a vector. Check this by calling the function `my_sqrt` on an input vector.
+```{r}
+v <- c(16, 25, 36)
+my_sqrt(v)
+```
+
+
+With this simple self-written function, we can also illustrated why functions can be called 'stupid' and why we should always include checks for the arguments of your self-written function. With regard to this issue, [@introRbookdown] gives an accurate description of what it means to be a programmer:  
+**Remember two things: the intelligence of code comes from the coder, not the computer and functions need exact instructions to work.**
+
+
+```{r}
+my_sqrt(-1)
+```
+We can fix this issue by adding some checks to our self-written function. It's up to you to decide on the checks that you add to your function and also what action will be taken. With the function `stop()` the code will be stopped and with the function `warning()` the function will proceed, but a warning will be given when using the function. 
+```{r, error = TRUE}
+my_sqrt <- function(x, print_info = TRUE) {
+  if(!is.complex(x)) {
+    if(x < 0) {
+      stop("Computer says no.")
+    }
+  }
+  y <- sqrt(x)
+  if (print_info) {
+    print(paste("sqrt", x, "equals", y))
+  }
+  return(y)
+}
+my_sqrt(-1)
+x <- 3i^2 # 
+my_sqrt(x)
+```
+The example also illustrates that you can specify the error/warning message yourself. Even if it's not the case for this example, make sure that these messages are informative. Both for the user and yourself. This way, the user will know what went wrong and why the function doesn't work. This will save you a lot of time in the future, when you will use code that you have written a long time ago.
+
+<!-- ![](images/OldCode1.jpg) ![](images/OldCode2.jpg) -->
+
+```{r, echo = FALSE, out.width = "50%", fig.show = 'hold', fig.align = 'default'}
+knitr::include_graphics(c("images/OldCode1.jpg", "images/OldCode2.jpg"))
+```
+
+
+
+### The '...' argument
+You probably already encountered the ellipsis argument `...` in the help files of some functions (see `?plot` for example). This argument allows you to pass the arguments of your self-written function to another function (within your function). 
+
+```{r}
+f <- function(x, y, ...) {
+  plot(x, y, ...)
+  lmFit <- lm(y ~ x)
+  muHat <- fitted(lmFit)
+  muHat <- muHat[order(x)]
+  x     <- x[order(x)]
+  lines(x, muHat, lwd = 2)
+}
+x <- rnorm(1e2)
+y <- 2 * x + rnorm(1e2, 0, 0.5)
+f(x, y, pch = 16, col = "red", xlab = "x-values", ylab = "y-values", main = "OLS plot")
+```
+
+### Function environments (advanced)
+This part is a bit more advanced, so don't worry if you don't fully understand everything in this section. Know that it suffices to have a general understanding of this chapter and that you can read it again once you are more familiar with writing functions. For an in-depth discussion on (function) environments, we refer the reader to the Advanced R book [@AdvancedR]. 
+
+Remember the sandbox analogy? Our global environment is our big sandbox and the objects that we create in this sandbox, stay in it. When we define a function and give it a name, we create a new object in our sandbox. Just like any other object, we can call it by using its name. Keeping the sandbox analogy, we can look at a function as a mini-sandbox within our larger sandbox, just like other objects. Functions, however, are fundamentally different from other objects. Not only because of their class, but also because of how they operate and their interaction with the different environments in R. 
+
+The inner part of the function (i.e. the part in the curly braces `{}`) has its own environment, called the execution environment. Further, functions have what they call a fresh start principle [@AdvancedR]. This means that, every time we run a function, a new execution environment is created in which the inner part is executed. Translating this to the sandbox analogy, we start with a clean mini-sandbox every time we run the function and after the function has been completed, we throw away everything that was computed and created in this mini-sandbox.
+```{r}
+f <- function() {
+  a <- 1
+  a <- a + 1
+  cat("\nenvironment:")
+  print(environment())
+  a
+}
+f()
+f()
+```
+In this example we see that a new (execution) environment is created every time the function is called. Due to this fresh start principle, R makes sure that results are not contaminated due to previous function calls and that we get the same result when we run the function with the same arguments.
+
+```{r, error = TRUE}
+rm(x, a)
+f <- function(x) {
+  x * a
+}
+f(2)
+a <- 3
+f(2)
+```
+
+
+---
+
+## The apply family
+
+Whenever you're using a for loop, you might want to revise your code and see whether you can use a member of the `apply` family instead. [Quote from DataCamp's `Intermediate R' course]
+
+These functions may be a bit confusing at first, but once you get the hang of them they will be your best friends. With this family of functions, we are able to avoid loops, to run our code faster (certainly when using the parallel versions) and the risk of having an error is considerably lower. As [@introRbookdown] accurately and honestly put it:
+ **If you can, use the apply version. There’s nothing worse than realizing there was a small, tiny, seemingly meaningless mistake in a loop which weeks, months or years down the line has propagated into a huge mess. We strongly recommend trying to use the apply functions whenever possible.**
+ 
+![](images/TaskFailedSuccesfully.jpg) 
+ 
+ 
+Just look at the following example which is a simplification of what might happen in reality. This all has to do with our (execution) environment. In the `for` loop this is our global environment and that's why the original `x` gets overwritten. Conversely, when using `sapply()` we have the fresh start principle. Every 'loop' within `sapply` starts with a 'clean' environment.
+```{r}
+x <- 3
+for(i in 1:3) {
+  x = x + i
+  print(x)
+}
+
+x <- 3
+sapply(1:3, function(i) {
+  x <- x + i
+  x
+})
+```
+ 
+The `sapply` function is a member of a broader group of functions, the apply family of functions:
+
+  + `apply`,
+  + `lapply`,
+  + `sapply`,
+  + `tapply`,
+  + `vapply`,
+  + `mapply`.
+
+Of all members, the `sapply` and `lapply` function are easiest to start with. The `sapply` and `lapply` function are nearly identical and are meant for one-dimensional inputs (i.e. a vector or a list). `sapply` will try to simplify the output as much as possible, while `lapply` will always return a list. Based on the example in the code block above, can you guess what the output of the following code will be?
+
+```{r, eval = FALSE}
+(a <- rnorm(3))
+lapply(a, function(x) floor(x))
+```
+To explain the mechanics behind `lapply` more in detail, let's use the following structure:
+
+```{r, eval = FALSE}
+lapply(X, FUN)
+```
+
+Here, `X` is the input which is either a vector or a list and each element of `X` is then passed to the function `FUN`. 
+
+```{r}
+Garfield <- function(x) {
+  if(x == "Monday")
+    "I hate Mondays!"
+  else
+    "I'm glad it's not Monday."
+}
+X <- weekdays(Sys.Date() + 0:6)
+lapply(X, FUN = Garfield)
+```
+In this example, `X` is a vector that contains all days of the week and each weekday is then passed to the function `Garfield` which tells you whether Garfield is happy or not. Further, the results are returned in a list-form. This is another advantage compared to a `for` loop, where we would have to explicitly create a list and save all results in this list. In addition, the fact that the input to the `lapply` function can also be a list, makes it even more interesting to use. The `lapply` and `sapply` function are incredibly powerful once you get the hang of it. Just take a look at the following example.
+
+```{r}
+p  <- 4
+n  <- 10
+X  <- cbind(1, replicate(p, rnorm(n)))
+B  <- runif(1 + p)
+Y  <- X %*% B + rnorm(n) / 10
+Df <- data.frame(Y, X[, -1])
+
+ModelFits <- lapply(1:p, function(x) {
+  Formula <- formula(paste0("Y ~ ", paste0("X", 1:x, collapse = " + ")))
+  lmFit   <- lm(Formula, data = Df)
+  return(lmFit)
+})
+lapply(ModelFits, coef)
+lapply(ModelFits, sigma)
+```
+
+If you look at the help file of the `lapply` function, you will notice that this also makes use of the ellipsis `...` argument and hence, we can pass arguments to the function `FUN`.
+
+```{r}
+lapply(ModelFits, predict, interval = "confidence")
+```
+
+If we would rather have the results returned as a vector, matrix or array, we can make use of the `sapply` function.
+```{r}
+sapply(ModelFits, sigma)
+```
+
+Another advantage of using `sapply` is that it will, by default, return a named object when the input `X` has a `names` attribute.
+```{r}
+names(ModelFits) <- paste0("Model", seq_along(ModelFits))
+attributes(ModelFits)
+sapply(ModelFits, sigma)
+```
+
+This default behavior of simplifying the output can be changed by setting the argument `simplify = FALSE`.
+```{r}
+sapply(ModelFits, sigma, simplify = F)
+```
+
+  
+Another very famous member of this family is the `apply` function and is meant for two- or higher-dimensional objects.
+
+* It must be applied on an array and is also applicable to a matrix and a data.frame.
+* It takes the following arguments:
+  + first argument: the array you are working with
+  + second argument: margin to apply the function over (1 for rows and 2
+  for columns)
+  + third argument: function you want to apply.
+  + fourth argument: ellipsis argument, used to pass arguments to the applied function
+
+Let's start by illustrating it with a very simple example.  
+
+```{r}
+my_matrix <- matrix(1:9, nrow = 3)
+# sum the rows
+apply(my_matrix, 1, sum)
+# sum the columns
+apply(my_matrix, 2, sum)
+# insert a missing observation in my_matrix
+my_matrix[2,1] <- NA
+apply(my_matrix, 1, sum)
+apply(my_matrix, 1, sum, na.rm = TRUE)
+```
+
+What `apply` does, is that is basically 'slices' the input object according to the margin specified and then passes each 'slice' to the user-specified function. That's why it's related to the `lapply` and `sapply` function. Do you know why we get the same result for `apply` and `sapply` in the following block of code?
+```{r}
+my_matrix <- as.data.frame(my_matrix)
+apply(my_matrix, 2, sum, na.rm = T)
+sapply(my_matrix, sum, na.rm = T)
+```
+That's right! Since a data.frame is a `list` type of object, we can either use `apply` or `lapply` on a data.frame when we want to use the columns as the input for `FUN`.
+
+Another useful member of this family is the `tapply` function, which you already encountered in Chapter \@ref(started-with-data). The `tapply` function is useful when we need to break up a vector into groups defined by some classifying factor, compute a function on the subsets, and return the results in a convenient form.
+```{r}
+wages <- c(5500, 3500, 6500, 7500)
+gender <- c("F", "F", "M", "M")
+region <- c("North", "South", "North", "South")
+salary <- data.frame(wages, gender, region)
+tapply(salary$wages, salary$gender, mean)
+tapply(salary$wages, list(salary$gender, salary$region), mean)
+```
+
+
+The remaining two members, `vapply` and `mapply`, are for more advanced users and hence, we will not discuss them in detail. For now, it suffices to know that `vapply` is similar to `sapply`, but that it has a pre-specified type of return value and that `mapply` is a multivariate version of `sapply`.
+
+### Taking lapply/sapply to the next level
+We saw that the input for `sapply`/`lapply` can also be a list. What if the list contained functions? Would this really work? In general, no matter how crazy your idea is for R, if you can translate it to code it will work. 
+
+```{r}
+Fns <- list(mean, sd, median, IQR)
+x   <- rpois(1e3, 5)
+lapply(Fns, function(f) f(x))
+```
+
+
+This example again shows how flexible and awesome R is!
+
+
+<!-- Add part on parallel programming -->
+
+---
+
+## Exercises
+
+```{block functions, type="learncheck", purl=FALSE}
+**_Learning check_**
+```
+
+1. Create a function that will return the sum of 2 integers.
+
+2. The function `var` in R calculates the unbiased variance estimator, given
+ a random sample of data. Write a function `variance` which returns the biased
+ or unbiased estimate of the variance, depending on the value of the argument 
+ `bias` which can be `TRUE` or `FALSE`. By default the function `variance` 
+ should produce the same result as `var`. 
+ Formulas: unbiased = $\frac{1}{n-1}\sum_i (x_i-\bar{x})^2$ and 
+ biased = $\frac{1}{n}\sum_i(x_i-\bar{x})^2$ where $\bar{x}=\frac{1}{n} \sum_i x_i$.
+ 
+3. Create a function that given a vector and an integer will return how many times the integer appears inside the vector.
+
+4. Create a function that given a vector will print by screen the mean and the standard deviation, it will optionally also print the median.
+
+5. Start by running the code `Avg <- ceiling(runif(5) * 10)`.
+  + Use `lapply` with the vector `Avg` and the function `rnorm` with `n = 1000` to create a list. Each element of `Avg` should be passed to the argument `mean` of the function `rnorm`.
+  + Compute the mean of each element in this list using either `lapply` or `sapply`.
+  + Compute the standard deviation as well.
+
+
+```{block, type="learncheck", purl=FALSE}
+```
+
+<!--chapter:end:08-writingFunctions.Rmd-->
+
+# Optimization in R {#optimization}
+
+Actuaries often write functions (e.g. a likelihood) that have to be optimized. Here you'll get to know some R functionalities to do optimization.
+
+## Find the root of a function
+
+Consider the function $f: x \mapsto x^2-3^{-x}$. What is the root of this function over the interval $[0,1]$?
+
+```{r}
+# in one line of code
+uniroot(function(x) x^2-3^(-x), lower=0, upper=1)
+? uniroot
+# in more lines of code
+f <- function(x){
+	x^2-3^(-x)
+}
+# calculate root
+opt <- uniroot(f, lower=0, upper=1)
+# check arguments
+names(opt)
+# evaluate 'f(.)' in the root
+f(opt$root)
+# visualize the function
+range <- seq(-2, 2, by=0.2)
+plot(range, f(range), type="l")
+points(opt$root, f(opt$root), pch=20)
+segments(opt$root, -7, opt$root, 0, lty=2)
+segments(-3, 0, opt$root, 0, lty=2)
+```
+
+---
+
+## Find the maximum of a function
+
+You look for the maximum of the beta density with a given set of parameters.
+```{r}
+# visualize the density
+shape1 <- 3
+shape2 <- 2
+x <- seq(from=0, to=1, by=0.01)
+curve(dbeta(x,shape1,shape2), xlim=range(x))
+
+opt_beta <- optimize(dbeta, interval = c(0, 1), maximum = TRUE, shape1, shape2)
+points(opt_beta$maximum, opt_beta$objective, pch=20, cex=1.5)
+segments(opt_beta$maximum, 0, opt_beta$maximum, opt_beta$objective, lty=2)
+```
+
+---
+
+## Perform Maximum Likelihood Estimation (MLE)
+Once we know the expression for a probability distribution, we can estimate its parameters by maximizing the (log-)likelihood. Take logistic regression, for example. Here, the likelihood function is given by
+$$L(\boldsymbol{\beta}) = \prod_{i=1}^{\text{n}} p_i^{y_i} (1 - p_i)^{(1 - y_i)}$$
+where 
+$$p_i = \frac{e^{\boldsymbol{x}_i^{'} \boldsymbol{\beta}}}{1 + e^{\boldsymbol{x}_i^{'} \boldsymbol{\beta}}}$$ 
+and where $\boldsymbol{x}_i$ is the covariate vector for observation $i$ and $\boldsymbol{\beta}$ the parameter vector. The log-likelihood is given by
+$$\ell(\boldsymbol{\beta}) = \sum_{i=1}^{\text{n}} y_i \log(p_i) +  (1 - y_i) \log(1 - p_i).$$
+
+Hence, with a dataset, we optimize this function to get the maximum likelihood estimate $\hat{\boldsymbol{\beta}}$. To do this in R, let's use the `birthwt` dataset from the package `MASS`.
+
+```{r}
+library(MASS)
+data("birthwt")
+?birthwt
+Df <- birthwt
+head(birthwt)
+```
+
+We want to model the probability on low birthweight as a function of the variables `age`, `lwt`, `race` and `smoke` and create an object `Form` containing this formula to make life easy.
+```{r}
+Form <- formula(low ~ age + lwt + race + smoke)
+```
+
+When fitting a logistic regression model, we get the following results.
+```{r}
+(glmFit <- glm(Form, data = Df, family = binomial))
+```
+We will use this to check if we did everything correctly when using our self-written code. We first start by writing a function for the (negative) log-likelihood.
+```{r}
+logLikLR <- function(B, X, y) {
+  Eta  <- X %*% B
+  pHat <- binomial()$linkinv(X %*% B)
+  -sum(y * log(pHat) + (1 - y) * log(1 - pHat))
+}
+```
+
+Note that we use the negative log-likelihood here. We do this because the functions that we will use minimize our function instead of maximizing it.
+
+When programming, it's always good to perform some sanity checks. A double or tripple check will assure you that you did not do anything stupid (such as having written a `+` instead of a `-`).
+
+![Retrieved from https://lefunny.net/funny-sanity-saying/](images/SanityCheck.jpg)
+
+
+```{r}
+logLik(glmFit)
+-logLikLR(coef(glmFit), model.matrix(glmFit), Df$low)
+```
+OK, so that checks out. Noice, let's go the next step. Now we need a function that minimizes our (multivariate) function for us. For this, we can use the function `optim`. When using `optim`, we also need some initial values for our parameters. The log-likelihood for our logistic regression model isn't overly complex and hence, we can just use 0's as starting values.
+
+```{r}
+Bstart  <- rep(0, length(coef(glmFit)))
+X       <- model.matrix(Form, data = Df)
+y       <- Df$low
+LRoptim <- optim(Bstart, logLikLR, X = X, y = y)
+cbind(LRoptim$par, glmFit$coefficients)
+```
+OK, not bad, but I think we can do better. So let's use some other optimizers.
+```{r}
+LRoptim <- optim(Bstart, logLikLR, X = X, y = y, method = "BFGS")
+cbind(LRoptim$par, glmFit$coefficients)
+```
+Euhm, yes, looking good for all estimated coefficients except the intercept. What do we do now? One way to further improve it, is by adding a function that returns the gradient vector. So, let's do this. Remember that we are working with the negative log-likelihood and that we therefore also have to adjust our function to compute the gradient!
+
+```{r}
+Gradient <- function(B, X, y) {
+  pHat <- binomial()$linkinv(X %*% B)
+  -crossprod(X, y - pHat)
+}
+LRoptim <- optim(Bstart, logLikLR, X = X, y = y, method = "BFGS", gr = Gradient)
+cbind(LRoptim$par, glmFit$coefficients)
+```
+Phew, that looks a lot better! As an alternative to `optim`, we can use `nlm`.
+```{r}
+LRnlm <- nlm(logLikLR, Bstart, X = X, y = y)
+cbind(LRnlm$estimate, glmFit$coefficients)
+```
+We see that the results of `nlm` are even more accurate without having to adjust the default settings. As with `optim`, we can also add a function to compute the gradient, but here we have to add it as an attribute in the original function.
+```{r}
+logLikLR <- function(B, X, y) {
+  Eta  <- X %*% B
+  pHat <- binomial()$linkinv(X %*% B)
+  LL   <- -sum(y * log(pHat) + (1 - y) * log(1 - pHat))
+  attr(LL, "gradient") <- -crossprod(X, y - pHat)
+  LL
+}
+LRnlm <- nlm(logLikLR, Bstart, X = X, y = y)
+cbind(LRnlm$estimate, glmFit$coefficients)
+```
+We can even add the Hessian matrix (and again, remember that we are working with the negative log-likelihood)!
+```{r}
+logLikLR <- function(B, X, y) {
+  Eta  <- X %*% B
+  pHat <- as.vector(binomial()$linkinv(X %*% B))
+  W    <- diag(pHat * (1 - pHat), ncol = length(pHat))
+  LL   <- -sum(y * log(pHat) + (1 - y) * log(1 - pHat))
+  attr(LL, "gradient") <- -crossprod(X, y - pHat)
+  attr(LL, "hessian") <- t(X) %*% W %*% X
+  LL
+}
+LRnlm <- nlm(logLikLR, Bstart, X = X, y = y, gradtol = 1e-8)
+cbind(LRnlm$estimate, glmFit$coefficients)
+```
+
+<!--chapter:end:09-optimization.Rmd-->
+
+# Linear Regression Models in R {#lms}
+
+Your journey as a model builder in R will start from studying linear models and the use of the `lm` function.
+
+## A simple linear regression model
+
+You analyze Ford dealership data as registered in Milwaukee, September/October 1990. Data on 62 credit card applicants are available, including the car purchase price $Y$ and the applicant's annual income $X$. Data are available in the `.csv` file `car_price`.
+
+You first load the data.
+```{r}
+path <- file.path('data')
+path.car <- file.path(path, "car_price.csv")
+car_price <- read.csv(path.car)
+```
+Then you explore the data.
+```{r}
+attach(car_price)
+summary(price)
+summary(income)
+
+# average
+mean(price)
+mean(income)
+
+# standard deviation
+sd(price)
+sd(income)
+
+# the 5-th and 95-th percentiles
+quantile(price, c(0.05, 0.95))
+quantile(income, c(0.05, 0.95))
+
+# histograms of price and income
+# density histogram for 'price'
+hist(price, br = 20, xlim = c(5000, 30000), col="grey", freq=FALSE)
+lines(density(price), col=4)
+# frequency histogram for 'income/1000'
+hist(income/1000, br=10, xlab="income (in $000's)", xlim=c(0, 120), col="grey")
+
+# scatter plot 'income/1000' versus 'price'
+plot(income/1000, price, pch=21, cex=1.2, xlab="income (in $000's)")
+detach(car_price)
+```
+Explore the data with `ggplot`.
+```{r}
+library("ggplot2")
+ggplot(car_price, aes(x = income/1000, y = price)) +
+  theme_bw() +
+  geom_point(shape=1, alpha = 1/2) + 
+  geom_smooth() 
+```
+
+You will now fit a simple regression model with income as predictor to purchase price. That is:
+
+\begin{eqnarray*}
+Y_i &=& \beta_0+\beta_1 \cdot x_i +\epsilon_i,
+\end{eqnarray*}
+where $Y_i$ is the car price for observation $i$, $x_i$ the corresponding income and $\epsilon_i$ an error term. $\beta_0$ is the intercept and $\beta_1$ the slope.
+
+
+Recall that fitting a (simple) linear regression model implies minimizing the residual sum of squares. That is:
+
+\begin{eqnarray*}
+(\hat{\beta}_0,\ \hat{\beta}_1) = \min_{\beta_0, \beta_1} \sum_{i=1}^n \left(Y_i - (\beta_0+\beta_1 \cdot x_{i})\right)^2,
+\end{eqnarray*}
+and the fitted values are then specified as $\hat{y}_i=\hat{\beta}_0+\hat{\beta}_1\cdot x_{i}$. The corresponding residuals are then defined as $\hat{\epsilon}_i = y_i - \hat{y}_i$. 
+
+You assign the output of the `lm` function to the object `lm1`.
+```{r}
+lm1 <- lm(price ~ income, data = car_price)
+summary(lm1)
+# check attributes of object 'lm1'
+names(lm1)
+# some useful stuff: 'coefficients', 'residuals', 'fitted.values', 'model'
+lm1$coef
+lm1$residuals
+lm1$fitted.values
+```
+
+To visualize this linear model fit you can use the built-in `plot` function, applied to object `lm1`.
+```{r}
+# use built-in plot function
+# you may have noticed that we have used the function plot with all kinds of arguments: 
+# one or two variables, a data frame, and now a linear model fit;
+# in R jargon plot is a generic function; it checks for the kind of object that you # are plotting and then calls the appropriate (more specialized) function to do the work.
+plot(lm1)
+```
+
+Or you can construct your own plots, e.g. by adding the least squares line to the scatter plot.
+```{r}
+# add the regression line to the scatter plot
+plot(car_price$income, car_price$price, pch=21, cex=1.2, xlab = "income", main = "Simple linear regression")
+# add LS line like this
+abline(lm1, col="blue", lwd=2)
+# or like this
+abline(lm1$coefficients[1], lm1$coefficients[2])
+```
+
+Similarly, you can illustrate the fit with `ggplot`.
+```{r}
+ggplot(car_price, aes(x = income, y = price)) + 
+ theme_bw() +
+ geom_point(shape=1, alpha = 1/2) + 
+ geom_smooth()+geom_abline(intercept = lm1$coef[1], slope = lm1$coef[2],   colour="red", size=1.25) 
+```
+
+The least squares fit minimizes the sum of the squares of the vertical distances between the observed response values and the least squares line (or plane). You now graphically illustrate what vertical distance means.
+```{r}
+plot(car_price$income, car_price$price, pch=21, cex=1.2, xlab = "income", main = "Simple linear regression")
+abline(lm1, col = "blue", lwd=2)
+segments(car_price$income, car_price$price, car_price$income, lm1$fitted.values, lty=1)
+```
+
+You now return to the `summary(lm1)` and try to understand the (rest of the) output that is printed. 
+```{r}
+summary(lm1)
+```
+Recall that in a general linear model $Y = X\beta + \epsilon$ where $E[\epsilon]=0$ and $\text{Var}(\epsilon)=\sigma^2 I$ with $I$ the identity matrix, the following estimator is used for the variance of the error terms
+\begin{eqnarray*}
+s^2 &=& \frac{1}{n-(p+1)}(Y-X\hat{\beta})^{'}(Y-X\hat{\beta}),
+\end{eqnarray*}
+where $\beta = (\beta_0, \beta_1, \ldots, \beta_p)^{'}$.
+
+You can recognize this in the output of `lm1` as follows
+```{r}
+error.SS <- sum(lm1$resid^2)
+error.SS
+sqrt(error.SS/(nrow(car_price)-2))
+```
+
+The proportion of the variability in the data that is explained by the regression model is
+\begin{eqnarray*}
+R^2 &=& \frac{\text{Regression SS}}{\text{Total SS}} \\
+&=& \frac{\sum_{i=1}^n (\hat{Y}_i-\bar{Y})^2}{\sum_{i=1}^n (Y_i-\bar{Y})^2} \\
+&=& \frac{\sum_{i=1}^n (Y_i-\bar{Y})^2 - \sum_{i=1}^n (Y_i-\hat{Y})^2}{\sum_{i=1}^n (Y_i-\bar{Y})^2}.
+\end{eqnarray*}
+
+```{r}
+attach(car_price)
+total.SS <- sum((price-mean(price))^2)
+total.SS
+error.SS <- sum(lm1$resid^2)
+error.SS
+
+# R^2?
+(total.SS-error.SS)/total.SS
+detach(car_price)
+```
+
+Finally, the output of `lm1` displays the result of a so-called $F$ test, constructed as follows:
+```{r}
+attach(car_price)
+# anova table in R?
+anova(lm1)
+
+# F-statistic in anova and in output lm1?
+lm0 <- lm(price ~ 1)
+error0.SS <- sum(lm0$resid^2)
+
+# calculate F-statistic
+F <- ((anova(lm0)$"Sum Sq")-(anova(lm1)$"Sum Sq"[2]))/(anova(lm1)$"Mean Sq"[2]) 
+F
+# critical values
+qf(0.95, 1, 60)
+1-pf(F, 1, 60)
+
+detach(car_price)
+```
+---
+
+## A multiple linear regression model
+
+You'll now move on from simple to multiple linear regression. You model the 
+data by McDonald and Schwing (1973) published in Technometrics. The sampled data consists of variables obtained for year 1960 for 60 Standard Metropolitan
+Statistical Areas (SMSA) in the US. The goal is to relate mortality in these SMSA to explanatory variables. For each sample area, you have information concerning the age-adjusted mortality rate for all causes, expressed as deaths per 100,000 population. This will be your response variable. The list of explanatory variables is:
+
+* weather-related variables:
+ + `prec`: average annual precipitation in inches
+ + `jant`: average January temperature in degrees F
+ + `jult`: average July temperature in degrees F
+ + `humid`: annual average % relative humidity at 1 pm
+* scocio-economic characteristics:
+ + `ovr65`: % of 1960 SMSA population aged 65 and older
+ + `popn`: average household size
+ + `educ` : median school years completed by those over 22
+ + `hous` : % of housing units which are sound and with all facilities
+ + `educ` : median school years completed by those over 22
+ + `dens` : population per sq mile in urbanized areas, 1960
+ + `nonw` : % of non-white population in urbanized areas, 1960
+ + `wwdrk` : % of employed in white collar occupations
+ + `poor` : % of families with income less than $3,000
+* pollutants:
+ + `hc` : relative pollution potential of hydrocarbons
+ + `nox` : relative pollution potential of oxides of nitrogen
+ + `so2`: relative pollution potential of sulfur dioxides
+
+First, you'll load the data.
+```{r}
+path <- file.path('data')
+path.mort <- file.path(path, "pollution.csv")
+mort_poll <- read.csv(path.mort)
+```
+Then, you'll explore the data.
+```{r}
+attach(mort_poll)
+summary(mort_poll)
+# get correlation matrix
+round(cor(mort_poll), 4)
+
+# create dataframes
+# weather related vars
+mort_poll_1 <- data.frame(mort, prec, jant, jult, humid)
+# socio-economic vars
+mort_poll_2 <- data.frame(mort, ovr65, popn, educ, hous, dens, nonw, wwdrk, poor)
+# pollution effects
+mort_poll_3 <- data.frame(mort, hc, nox, so2)
+
+# matrix scatterplots
+pairs(mort_poll_1, cex=1, pch=19)
+pairs(mort_poll_2, cex=0.5, pch=19)
+pairs(mort_poll_3, cex=1, pch=19)
+detach(mort_poll)
+```
+
+First, you fit a rather simple linear model to explain `mort`. That is 
+\begin{eqnarray*}
+Y &=& \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \epsilon_i,
+\end{eqnarray*}
+where $\beta_0$ is the intercept, $x_1$ the `educ` and $x_2$ the `so2`.
+```{r}
+attach(mort_poll)
+lm1 <- lm(mort ~ educ + so2)
+summary(lm1)
+detach(mort_poll)
+```
+
+You inspect the analysis-of-variance table for this linear model `lm1`. That is
+```{r}
+anova(lm1)
+attach(mort_poll)
+lm0 <- lm(mort ~ 1)
+lm_educ <- lm(mort ~ educ)
+anova(lm_educ)
+F_educ <- ((anova(lm0)$"Sum Sq")-(anova(lm_educ)$"Sum Sq"[2]))/(anova(lm1)$"Mean Sq"[3]) 
+F_educ
+F_so2 <- ((anova(lm_educ)$"Sum Sq"[2])-(anova(lm1)$"Sum Sq"[3]))/(anova(lm1)$"Mean Sq"[3]) 
+F_so2
+detach(mort_poll)
+```
+
+
+You will now use the object `lm1` to construct confidence and prediction intervals for a single observation. Given a set of predictor values in $x_0$ the predicted response is $\hat{y}_0 = x_0^{'}\hat{\beta}$. The uncertainty in predicting the mean response is $\text{Var}(x_0^{'}\hat{\beta})$ whereas the uncertainty in predicting the value of an observation is $\text{Var}(x_0^{'}\hat{\beta}+\epsilon_0)$.
+```{r}
+attach(mort_poll)
+x0 <- data.frame(educ = 10, so2 = exp(2))
+predict(lm1, x0, interval = "confidence")
+predict(lm1, x0, interval = "prediction")
+detach(mort_poll)
+```
+For a grid of `educ` values, when `so2` is fixed, this goes as follows:
+```{r}
+attach(mort_poll)
+grid <- seq(8, 15, 0.1)
+x.new <- data.frame(educ = grid, so2 = exp(2))
+p <- predict(lm1, x.new, se=TRUE, interval="prediction")
+p1 <- predict(lm1, x.new, se=TRUE, interval="confidence")
+# use `matplot` to plot the columns of one matrix against the columnsof another
+matplot(grid, p$fit, lty=c(1,2,2), col=c("black", "red", "red"), type = "l", xlab = "educ", ylab = "mort", main = "Predicted mort over a range of educ, log(so2)=2")
+matlines(grid, p1$fit, lty = c(1, 2, 2), col = c("black", "blue", "blue"))
+rug(educ)
+# for an explanation wrt different shapes, see 
+# http://stats.stackexchange.com/questions/85560/shape-of-confidence-interval-for-p# redicted-values-in-linear-regression
+detach(mort_poll)
+```
+
+Then you fit a linear model with all 15 variables in the dataset.
+```{r}
+attach(mort_poll)
+lm2 <- lm(mort ~ prec + jant + jult + humid + hc + nox + so2 + ovr65 + popn + educ + hous + dens + nonw + wwdrk + poor)
+lm2$coef
+detach(mort_poll)
+```
+
+Now perform model selection stepwise, based on AIC. 
+```{r}
+# model selection based on AIC
+library(MASS)
+attach(mort_poll)
+lm1 <- lm(mort ~ 1)
+# get AIC, mind the difference
+AIC(lm1)
+extractAIC(lm1)
+# for linear models with unknown scale (i.e., for lm and aov), 
+# -2 log L is computed from the deviance and uses a different additive constant to 
+# logLik and hence AIC 
+
+# forward search
+stepAIC(lm1, list(upper = ~ prec + jant + jult + ovr65 + popn + educ + hous + dens + nonw + wwdrk + poor + hc + log(nox) + log(so2) + humid, lower = ~ 1), direction = "forward")
+
+# backward search
+lm1 <- lm(mort ~ prec + jant + jult + ovr65 + popn + educ + hous + dens + nonw +
+		 wwdrk + poor + hc + log(nox) + log(so2) + humid)
+stepAIC(lm1, list(upper = ~ prec + jant + jult + ovr65 + popn + educ + hous + dens + nonw + wwdrk + poor + hc + log(nox) + log(so2) + humid, lower = ~ 1), direction = "backward")
+
+# both directions search
+lm1 <- lm(mort ~ 1)
+lm1 <- lm(mort ~ prec + jant + jult + ovr65 + popn + educ + hous + dens + nonw +
+		 wwdrk + poor + hc + log(nox) + log(so2) + humid)
+stepAIC(lm1, list(upper = ~ prec + jant + jult + ovr65 + popn + educ + hous + dens + nonw + wwdrk + poor + hc + log(nox) + log(so2) + humid, lower = ~ 1), direction = "both")
+detach(mort_poll)
+```
+--- 
+
+## Exercises
+
+```{block linear_models, purl=FALSE}
+**_Learning check_**
+```
+
+1. Load the Boston Housing dataset from the `mlbench` package. 
++ Use the following instructions
+```{r}
+library(mlbench)
+data("BostonHousing")
+```
++ Inspect the different types of variables present.
++ Explore and visualize the distribution of our target variable `medv`.
++ Explore and visualize any potential correlations between `medv` and the variables `crim`, `rm`, `age`, `rad`, `tax` and `lstat`.
++ Set a seed of 123 and split your data into a train and test set using a 75/25 split. You may find the `caret` library helpful here.
++ We have seen that `crim`, `rm`, `tax`, and `lstat` could be good predictors of `medv`. To get the ball rolling, let us fit a linear model for these terms.
++ Obtain an R-squared value for your model and examine the diagnostic plots found by plotting your linear model.
++ We can see a few problems with our model immediately with variables such as 381 exhibiting a high leverage, a poor QQ plot in the tails a relatively poor r-squared value. Let us try another model, this time transforming `medv` due to the positive skewness it exhibited.
++ Examine the diagnostics for the model. What do you conclude? Is this an improvement on the first model?
+ One assumption of a linear model is that the mean of the residuals is zero. You could try and test this.
++ Create a data frame of your predicted values and the original values.
++ Plot this to visualize the performance of your model.
+
+```{block, purl=FALSE}
+```
+
+<!--chapter:end:10-LinearRegression.Rmd-->
+
+# Generalized Linear Models in R {#glms}
+
+You'll now study the use of Generalized Linear Models in `R` for insurance ratemaking. You focus first on the example from Rob Kaas' et al. (2008) Modern Actuarial Risk Theory book (see Section 9.5 in this book), with simulated claim frequency data. 
+
+## Modelling count data with Poisson regression models
+
+### A first data set
+This example uses artifical, simulated data. You consider data on claim frequencies, registered on 54 risk cells over a period of 7 years. `n` gives the number of claims, and `expo` the corresponding number of policies in a risk cell; each policy is followed over a period of 7 years and `n` is the number of claims reported over this total period.
+
+```{r, eval=FALSE}
+n <- scan(n = 54)
+1  8 10  8  5 11 14 12 11 10  5 12 13 12 15 13 12 24
+12 11  6  8 16 19 28 11 14  4 12  8 18  3 17  6 11 18
+12  3 10 18 10 13 12 31 16 16 13 14  8 19 20  9 23 27
+
+expo <- scan(n = 54) * 7
+10 22 30 11 15 20 25 25 23 28 19 22 19 21 19 16 18 29
+25 18 20 13 26 21 27 14 16 11 23 26 29 13 26 13 17 27
+20 18 20 29 27 24 23 26 18 25 17 29 11 24 16 11 22 29
+
+n
+expo
+```
+
+```{r, echo=FALSE}
+n <- scan(textConnection("
+1  8 10  8  5 11 14 12 11 10  5 12 13 12 15 13 12 24
+12 11  6  8 16 19 28 11 14  4 12  8 18  3 17  6 11 18
+12  3 10 18 10 13 12 31 16 16 13 14  8 19 20  9 23 27"));
+
+expo <- scan(textConnection(" 
+10 22 30 11 15 20 25 25 23 28 19 22 19 21 19 16 18 29
+25 18 20 13 26 21 27 14 16 11 23 26 29 13 26 13 17 27
+20 18 20 29 27 24 23 26 18 25 17 29 11 24 16 11 22 29")) * 7;
+
+n
+expo
+```
+
+The goal is to illustrate ratemaking by explaining the expected number of claims as a function of a set of observable risk factors. Since artificial data are used in this example, you use simulated or self constructed risk factors. 4 factor variables are created, the `sex` of the policyholder (1=female and 2=male), the `region` where she lives (1=countryside, 2=elsewhere and 3=big city), the `type` of car (1=small, 2=middle and 3=big) and `job` class of the insured (1=civil servant/actuary/..., 2=in-between and 3=dynamic drivers). You use the `R` instruction `rep()` to construct these risk factors. In total 54 risk cells are created in this way. Note that you use the `R` instruction `as.factor()` to specify the risk factors as factor (or: categorical) covariates.
+
+```{r}
+sex <- as.factor(rep(1:2, each=27, len=54))
+region <- as.factor(rep(1:3, each=9, len=54))
+type <- as.factor(rep(1:3, each=3, len=54))
+job <- as.factor(rep(1:3, each=1, len=54))
+sex
+region
+type
+job
+```
+
+### Fit a Poisson GLM
+
+The response variable $N_i$ is the number of claims reported on risk cell `i`, hence it is reasonable to assume a Poisson distribution for this random variable. You fit the following Poisson GLM to the data
+
+\begin{eqnarray*}
+N_i &\sim& \text{POI}(d_i \cdot \lambda_i) 
+\end{eqnarray*}
+
+where $\lambda_i = \exp{(\boldsymbol{x}^{'}_i\boldsymbol{\beta})}$ and $d_i$ is the exposure for risk cell $i$. In `R` you use the instruction `glm` to fit a GLM. Covariates are listed with `+`, and the log of `expo` is used as an offset. Indeed, 
+
+\begin{eqnarray*}
+N_i &\sim& \text{POI}(d_i \cdot \lambda_i) \\
+&= & \text{POI}(\exp{(\boldsymbol{x}^{'}_i \boldsymbol{\beta}+\log{(d_i)})})
+\end{eqnarray*}
+
+The `R` instruction to fit this GLM (with `sex`, `region`, `type` and `job` the factor variables that construct the linear predictor) then goes as follows
+
+```{r}
+g1 <- glm(n ~ sex + region + type + job + offset(log(expo)), fam = poisson(link = log))
+```
+
+where the argument `fam=` indicates the distribution from the exponential family that is assumed. In this case you work with the Poisson distribution with logarithmic link (which is the default link in `R`). All available distributions and their default link functions are listed here http://stat.ethz.ch/R-manual/R-patched/library/stats/html/family.html.
+
+You store the results of the `glm` fit in the object `g1`. You consult this object with the `summary` instruction
+
+```{r}
+summary(g1)
+```
+
+This `summary` of a `glm` fit lists (among others) the following items:
+
+* the covariates used in the model, the corresponding estimates for the regression parameters ($\boldsymbol{\hat{\beta}}$), their standard errors, $z$ statistics and corresponding $P$ values; 
+* the dispersion parameter used; for the standard Poisson regression model this dispersion parameter is equal to 1, as indicated in the `R` output;
+* the null deviance - the deviance of the model that uses only an intercept - and the residual deviance - the deviance of the current model;
+    + the null deviance corresponds to $53$ degrees of freedom, that is $54-1$ where $54$ is the number of observations used and $1$ the number of parameters (here: just the intercept); 
+    + the residual deviance corresponds to $54-8=46$ degrees of freedom, since it uses $8$ parameters;
+* the AIC calculated for the considered regression model;
+* the number of Fisher's iterations needed to get convergence of the iterative numerical method to calculate the MLEs of the regression parameters in $\boldsymbol{\beta}$.
+  
+The instruction `names` shows the names of the variables stored within a `glm` object. One of these variables is called `coef` and contains the vector of regression parameter estimates ($\hat{\boldsymbol{\beta}}$). It can be extracted with the instruction `g1$coef`. 
+
+```{r}
+names(g1)
+g1$coef
+```
+
+Other variables can be consulted in a similar way. For example, fitted values at the original level are $\hat{\mu}_i=\exp{(\hat{\eta}_i)}$ where the fitted values at the level of the linear predictor are stored in $\hat{\eta}_i=\log{(d_i)}+\boldsymbol{x}^{'}_i\hat{\boldsymbol{\beta}}$. You then plot the fitted values versus the observed number of claims `n`. You add two reference lines: the diagonal and the least squares line.
+
+```{r}
+g1$fitted.values
+g1$linear.predictors
+
+plot(g1$fitted.values, n, xlab = "Fitted values", ylab = "Observed claims")
+abline(lm(g1$fitted ~ n), col="light blue", lwd=2)
+abline(0, 1, col = "dark blue", lwd=2)
+```
+
+To extract the AIC you use
+
+```{r}
+AIC(g1)
+```
+
+### The use of exposure
+
+The use of `expo`, the exposure measure, in a Poisson GLM often leads to confusion. For example, the following `glm` instruction uses a transformed response variable $n/expo$
+
+```{r, warning=FALSE, message=FALSE}
+g2 <- glm(n/expo ~ sex+region+type+job,fam=poisson(link=log))
+summary(g2)
+```
+
+and the object `g3` stores the result of a Poisson fit on the same response variable, while taking `expo` into account as weights in the likelihood.
+
+```{r, warning=FALSE, message=FALSE}
+g3 <- glm(n/expo ~ sex+region+type+job,weights=expo,fam=poisson(link=log))
+summary(g3)
+```
+
+Based on this output you conclude that `g1` (with the log of exposure as offset in the linear predictor) and `g3` are the same, but `g2` is not. The mathematical explanation for this observation is given in the note 'WeightsInGLMs.pdf' available from Katrien's lecture notes (available upon request).
+
+### Analysis of deviance for GLMs
+
+#### The basics
+
+You now focus on the selection of variables within a GLM based on a drop in deviance analysis. Your starting point is the GLM object `g1` and the `anova` instruction. 
+
+```{r}
+g1 <- glm(n ~ region + type + job, poisson, offset = log(expo))
+anova(g1, test = "Chisq")
+```
+
+The analysis of deviance table first summarizes the Poisson GLM object (response `n`, link is `log`, family is `poisson`). The table starts with the deviance of the `NULL` model (just using an intercept), and then adds risk factors sequentially. Recall that in this example only factor covariates are present. Adding `region` (which has three levels, and requires two dummy variables) to the `NULL` model causes a drop in deviance of `21.597`, corresponding to `54-1-2` degrees of freedom and a resulting (residual) deviance of `83.135`. The drop in deviance test allows to test whether the model term `region` is significant. That is:
+$$ H_0: \beta_{\text{region}_2}=0\ \text{and}\ \beta_{\text{region}_3}=0. $$
+The distribution of the corresponding test statistic is a Chi-squared distribution with `2` (i.e `53-51`) degrees of freedom. The corresponding $P$-value is `2.043e-05`. Hence, the model using `region` and the intercept is preferred above the `NULL` model. We can verify the $P$-value by calculating the following probability
+
+$$ Pr(X > 21.597)\ \text{with}\ X \sim \chi^2_{2}.$$
+
+Indeed, this is the probability - under $H_0$ - to obtain a value of the test statistic that is the same or more extreme than the actual observed value of the test statistic. Calculations in `R` are as follows:
+
+```{r}
+# p-value for region
+1 - pchisq(21.597, 2)
+# or
+pchisq(21.597, 2, lower.tail = FALSE)
+```
+
+Continuing the discussion of the above printed `anova` table, the next step is to add `type` to the model using an intercept and `region`. This causes a drop in deviance of `38.195`. You conclude that also `type` is a significant model term. The last step adds `job` to the existing model (with intercept, `region` and `type`). You conclude that `job` does not have a significant impact when explaining the expected number of claims. 
+
+Based on this analysis of deviance table `region` and `type` seem to be relevant risk factors, but `job` is not, when explaining the expected number of claims.
+
+The Chi-squared distribution is used here, since the regular Poisson regression model does not require the estimation of a dispersion parameter. 
+
+```{r,eval=FALSE}
+anova(g1,test="Chisq")
+```
+
+The setting changes when the dispersion parameter is unknown and should be estimated. If you run the analysis of deviance for glm object `g1` with the `F` distribution as distribution for the test statistic, you obtain:
+
+```{r}
+# what if we use 'F' instead of 'Chisq'?
+anova(g1,test="F") 
+# not appropriate for regular Poisson regression, see Warning message in the console!
+```
+
+and a `Warning message` is printed in the console that says
+
+```{r}
+# Warning message:
+# In anova.glm(g1, test = "F") :
+#   using F test with a 'poisson' family is inappropriate
+```
+
+It is insightful to understand how the output shown for the $F$ statistic and corresponding $P$-value is calculated. For example, the drop in deviance test comparing the `NULL` model viz a model using an intercept and `region` corresponds to an observed test statistic of `10.7985`. The calculation of the $F$ statistic requires
+
+$$ \frac{\text{Drop-in-deviance}/q}{\hat{\phi}},  $$
+where $q$ is the difference in degrees of freedom between the compared models and $\hat{\phi}$ is the estimate for the dispersion parameter. In this example $F$ corresponding to `region` is calculated as
+
+```{r}
+(21.597/2)/1
+```
+
+However, as explained, since the model investigated has a known dispersion, the Chi-squared test is most appropriate here. More details are here: https://stat.ethz.ch/R-manual/R-devel/library/stats/html/anova.glm.html.
+
+### An example
+
+You are now ready to study a complete analysis-of-deviance table. This table investigates 10 possible model specifications `g1-g10`. 
+```{r}
+# construct an analysis-of-deviance table
+g1 <- glm(n ~ 1, poisson , offset=log(expo))
+g2 <- glm(n ~ sex, poisson , offset=log(expo))
+g3 <- glm(n ~ sex+region, poisson, offset=log(expo))
+g4 <- glm(n ~ sex+region+sex:region, poisson, offset=log(expo))
+g5 <- glm(n ~ type, poisson, offset=log(expo))
+g6 <- glm(n ~ region, poisson, offset=log(expo))
+g7 <- glm(n ~ region+type, poisson, offset=log(expo))
+g8 <- glm(n ~ region+type+region:type, poisson, offset=log(expo))
+g9 <- glm(n ~ region+type+job, poisson, offset=log(expo))
+g10 <- glm(n ~ region+type+sex, poisson, offset=log(expo))
+```
+
+For example, the residual deviance obtained with model `g8` (using intercept, `region`, `type` and the interaction of `region` and `type`) is 42.4, see
+
+```{r}
+summary(g8)
+g8$deviance
+```
+
+Using the technique of drop in deviance analysis you compare the models that are nested (!!) and decide which model specification is the preferred one. To do this, one can run multiple `anova` instructions such as
+
+```{r}
+anova(g1, g2, test = "Chisq")
+```
+which compares nested models `g1` and `g2`, or `g7` and `g8`
+
+```{r}
+anova(g7, g8, test = "Chisq")
+```
+---
+
+## Overdispersed Poisson regression
+
+The overdispersed Poisson model builds a regression model for the mean of the response variable
+$$ E[N_i] = \exp{(\log d_i + \boldsymbol{x}_i^{'}\boldsymbol{\beta})} $$
+and expressses the variance as 
+$$ \text{Var}(N_i) = \phi \cdot E[N_i], $$
+with $N_i$ the number of claims reported by policyholder $i$ and $\phi$ an unknown dispersion parameter that should be estimated. This is called a quasi-Poisson model (see http://stat.ethz.ch/R-manual/R-patched/library/stats/html/family.html) and Section 1 in http://data.princeton.edu/wws509/notes/c4a.pdf for a more detailed explanation. To illustrate the differences between a regular Poisson and an overdispersed Poisson model, we fit the models `g.poi` and `g.quasi`:
+
+```{r}
+g.poi <- glm(n ~ region + type, poisson, offset = log(expo))
+summary(g.poi)
+
+g.quasi <- glm(n ~ region + type, quasipoisson, offset = log(expo))
+summary(g.quasi)
+```
+
+Parameter estimates in both models are the same, but standard errors (and hence $P$-values) are not! You also see that `g.poi` reports `z-value` whereas `g.quasi` reports `t-value`, because the latter model estimates an extra parameter, i.e. the dispersion parameter.
+
+Various methods are available to estimate the dispersion parameter, e.g.
+
+$$ \hat{\phi} = \frac{\text{Deviance}}{n-(p+1)}$$
+
+and
+
+$$ \hat{\phi} = \frac{\text{Pearson}\ \chi^2}{n-(p+1)}$$
+
+where $p+1$ is the total number of parameters (including the intercept) used in the considered model. The (residual) deviance is the deviance of the considered model and can also be obtained as the sum of squared deviance residuals. The Pearson $\chi^2$ statistic is the sum of the squared Pearson residuals. The latter is the default in R. Hence, you can verify the dispersion parameter of `0.896` as printed in the `summary` of `g.quasi`:
+
+```{r}
+# dispersion parameter in g is estimated as follows
+phi <- sum(residuals(g.poi, "pearson")^2)/g.poi$df.residual
+phi
+```
+
+Since $\hat{\phi}$ is less than 1, the result seems to indicate underdispersion. However, as discussed in Section 2.4 'Overdispersion' in the book of Denuit et al. (2007), real data on reported claim counts very often reveal overdispersion. The counterintuitive result that is obtained here is probably due to the fact that artificial, self-constructed data are used. 
+
+When going from `g.poi` (regular Poisson) to `g.quasi` the standard errors are changed as follows: 
+
+$$ \text{SE}_{\text{Q-POI}} = \sqrt{\hat{\phi}} \cdot \text{SE}_{\text{POI}},$$
+
+where $\text{Q-POI}$ is for quasi-Poisson.
+
+As a last step, you run the analysis of deviance for the quasi-Poisson model:
+
+```{r}
+anova(g.quasi, test = "F")
+```
+
+For example, the $F$-statistic for `region` is calculated as 
+
+```{r}
+F <- (21.597/2)/phi
+F
+```
+
+and the corresponding $P$-value is
+
+```{r}
+pf(F, 2, 49, lower.tail = FALSE)
+```
+---
+
+## Negative Binomial regression 
+
+You now focus on the use of yet another useful count regression model, that is the Negative Binomial regression model. The routine to fit a NB regression model is available in the package `MASS` and is called `glm.nb`, see https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/glm.nb.html
+
+```{r}
+library(MASS)
+g.nb <- glm.nb(n ~ region + sex + offset(log(expo)))
+summary(g.nb)
+```
+
+
+
+
+<!--chapter:end:11-GeneralizedLinearRegression.Rmd-->
+
+# References {#biblio}
+
+<!--chapter:end:12-References.Rmd-->
+
